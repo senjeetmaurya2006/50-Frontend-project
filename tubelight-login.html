@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tubelight Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @property --tube-color{
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #fff4d6;
+  }
+
+  :root{
+    --tube-color: #fff4d6;
+    --room-bg: #07070a;
+    --room-bg-2: #0d0d12;
+    --metal: #cfd2d6;
+    --metal-dark: #86898e;
+    --ink: #eef0f3;
+    --muted: #9195a1;
+    --glass: rgba(255,255,255,.06);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    height:100%; margin:0;
+    background: var(--room-bg);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  .room{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--tube-color) 22%, transparent) 0%, transparent 60%),
+      linear-gradient(180deg, var(--room-bg-2) 0%, var(--room-bg) 70%);
+    transition: --tube-color .6s ease, background 1.2s ease;
+  }
+
+  .vignette{
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.65) 100%);
+    pointer-events:none;
+  }
+
+  /* ---------- switch ---------- */
+  .switch-area{
+    position:absolute;
+    top: clamp(18px, 4vh, 36px);
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    z-index:20;
+  }
+
+  .switch-plate{
+    width:54px; height:78px;
+    background: linear-gradient(160deg, #e9ebee, #b9bcc2 60%, #94979d);
+    border-radius:10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(0,0,0,.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    border:none;
+    padding:0;
+  }
+
+  .switch-plate:focus-visible{
+    outline: 2px solid var(--tube-color);
+    outline-offset:3px;
+  }
+
+  .switch-slot{
+    width:26px; height:52px;
+    background: #1b1c1f;
+    border-radius:6px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.6);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .switch-toggle{
+    position:absolute;
+    left:2px; right:2px;
+    height:24px;
+    top:24px;
+    background: linear-gradient(160deg, #fafafa, #cfd2d6 55%, #9a9da3);
+    border-radius:5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.5);
+    transition: top .28s cubic-bezier(.4,0,.2,1);
+  }
+
+  .switch-dot{
+    position:absolute;
+    right:5px; bottom:5px;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:#4a1010;
+    box-shadow: 0 0 0 rgba(255,60,60,0);
+    transition: background .3s ease, box-shadow .3s ease;
+  }
+
+  .room.on .switch-toggle{ top:2px; }
+  .room.on .switch-dot{
+    background: #ff5252;
+    box-shadow: 0 0 10px 2px rgba(255,82,82,.8);
+  }
+
+  .switch-caption{
+    font-size:11px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:.85;
+    animation: pulseCaption 1.8s ease-in-out infinite;
+  }
+
+  .room.lit .switch-caption{ animation:none; opacity:.5; }
+
+  @keyframes pulseCaption{
+    0%,100%{ opacity:.5; }
+    50%{ opacity:1; }
+  }
+
+  /* ---------- tube light ---------- */
+  .tube-wrap{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-bottom: clamp(10px, 3vh, 26px);
+  }
+
+  .wire{
+    width:2px;
+    height: clamp(28px, 6vh, 54px);
+    background: linear-gradient(#3a3b40, #202124);
+  }
+
+  .tube{
+    position:relative;
+    width: clamp(170px, 30vw, 260px);
+    height: 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .tube-cap{
+    position:absolute;
+    width:14px; height:20px;
+    background: linear-gradient(160deg, #d8dadd, #8b8e94);
+    border-radius:3px;
+    z-index:3;
+  }
+  .tube-cap.l{ left:-6px; }
+  .tube-cap.r{ right:-6px; }
+
+  .tube-glass{
+    width:100%; height:100%;
+    background: rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:8px;
+  }
+
+  .tube-glow{
+    position:absolute;
+    inset: -1px;
+    border-radius:8px;
+    background: var(--tube-color);
+    opacity:0;
+    box-shadow:
+      0 0 12px 3px var(--tube-color),
+      0 0 40px 14px var(--tube-color),
+      0 0 90px 30px color-mix(in srgb, var(--tube-color) 60%, transparent);
+  }
+
+  @keyframes tubeFlicker{
+    0%   { opacity:0; }
+    4%   { opacity:.85; }
+    8%   { opacity:.08; }
+    12%  { opacity:.9; }
+    15%  { opacity:.15; }
+    22%  { opacity:1; }
+    26%  { opacity:.25; }
+    32%  { opacity:1; }
+    38%  { opacity:.1; }
+    45%  { opacity:1; }
+    100% { opacity:1; }
+  }
+  .tube.flicker-on .tube-glow{
+    animation: tubeFlicker 1.3s steps(1,end) forwards;
+  }
+
+  @keyframes tubeRecolor{
+    0%{ opacity:1; } 15%{ opacity:.2; } 30%{ opacity:1; }
+    45%{ opacity:.3; } 60%{ opacity:1; } 100%{ opacity:1; }
+  }
+  .tube.recolor .tube-glow{
+    animation: tubeRecolor .55s steps(1,end);
+  }
+
+  /* ---------- login card ---------- */
+  .login-wrap{
+    position:relative;
+    z-index:5;
+    opacity:0;
+    visibility:hidden;
+    transform: translateY(18px) scale(.95);
+    filter: blur(8px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1), filter .7s ease;
+    transition-delay: 0s;
+  }
+
+  .room.lit .login-wrap{
+    opacity:1;
+    visibility:visible;
+    transform:none;
+    filter:blur(0);
+  }
+
+  .login-card{
+    width:min(88vw, 340px);
+    padding: 30px 28px 26px;
+    border-radius:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+    border: 1px solid color-mix(in srgb, var(--tube-color) 45%, rgba(255,255,255,.12));
+    box-shadow:
+      0 20px 60px rgba(0,0,0,.55),
+      0 0 0 1px rgba(255,255,255,.02) inset,
+      0 0 34px -6px color-mix(in srgb, var(--tube-color) 60%, transparent);
+    backdrop-filter: blur(14px);
+    transition: border-color .5s ease, box-shadow .5s ease;
+  }
+
+  .login-head{ text-align:center; margin-bottom:22px; }
+
+  .login-head h1{
+    font-family:'Unbounded', sans-serif;
+    font-weight:800;
+    font-size: clamp(24px, 5vw, 30px);
+    margin:0 0 6px;
+    letter-spacing:.02em;
+    color: #fff;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--tube-color) 75%, transparent), 0 0 2px #fff;
+    transition: text-shadow .5s ease;
+  }
+
+  .login-head p{
+    margin:0;
+    font-size:12.5px;
+    color: var(--muted);
+    letter-spacing:.02em;
+  }
+
+  .field{ margin-bottom:16px; }
+
+  .field label{
+    display:block;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--muted);
+    margin-bottom:7px;
+  }
+
+  .field input{
+    width:100%;
+    padding:11px 13px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.28);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    outline:none;
+    transition: border-color .3s ease, box-shadow .3s ease;
+  }
+
+  .field input::placeholder{ color:#5c5f68; }
+
+  .field input:focus{
+    border-color: var(--tube-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tube-color) 22%, transparent);
+  }
+
+  .row-between{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin: -6px 0 18px;
+  }
+
+  .remember{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--muted);
+  }
+
+  .forgot{
+    font-size:12px;
+    color: var(--muted);
+    text-decoration:none;
+    border-bottom:1px dashed transparent;
+  }
+  .forgot:hover{ color:var(--ink); border-color: var(--tube-color); }
+
+  .btn-signin{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.03em;
+    color:#0a0a0d;
+    background: var(--tube-color);
+    box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--tube-color) 70%, transparent);
+    transition: background .5s ease, box-shadow .5s ease, transform .15s ease;
+  }
+  .btn-signin:hover{ transform: translateY(-1px); }
+  .btn-signin:active{ transform: translateY(0); }
+  .btn-signin:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
+
+  .switch-account{
+    text-align:center;
+    margin-top:18px;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .switch-account a{
+    color: var(--tube-color);
+    text-decoration:none;
+    font-weight:600;
+    transition: color .5s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="room" id="room">
+  <div class="vignette"></div>
+
+  <div class="switch-area">
+    <button class="switch-plate" id="switchBtn" aria-pressed="false" aria-label="Turn tubelight on or off">
+      <div class="switch-slot">
+        <div class="switch-toggle"></div>
+        <div class="switch-dot"></div>
+      </div>
+    </button>
+    <div class="switch-caption">Flip to turn on</div>
+  </div>
+
+  <div class="tube-wrap">
+    <div class="wire"></div>
+    <div class="tube" id="tube">
+      <div class="tube-cap l"></div>
+      <div class="tube-glass"></div>
+      <div class="tube-glow"></div>
+      <div class="tube-cap r"></div>
+    </div>
+  </div>
+
+  <div class="login-wrap">
+    <form class="login-card" id="loginCard">
+      <div class="login-head">
+        <h1>LOGIN</h1>
+        <p>Flip on, sign in.</p>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••">
+      </div>
+
+      <div class="row-between">
+        <label class="remember"><input type="checkbox" style="accent-color:var(--tube-color)"> Remember me</label>
+        <a class="forgot" href="#">Forgot password?</a>
+      </div>
+
+      <button class="btn-signin" type="submit">Sign In</button>
+
+      <div class="switch-account">New here? <a href="#">Create account</a></div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  const room = document.getElementById('room');
+  const tube = document.getElementById('tube');
+  const switchBtn = document.getElementById('switchBtn');
+  const loginCard = document.getElementById('loginCard');
+
+  const colors = ['#fff4d6', '#4deeea', '#ff3cac', '#ffc94d', '#39ff14', '#4d7cff'];
+  let colorIndex = 0;
+  let cycleTimer = null;
+  let flickerTimer = null;
+  let isOn = false;
+
+  function setColor(hex){
+    room.style.setProperty('--tube-color', hex);
+  }
+
+  function startColorCycle(){
+    cycleTimer = setInterval(() => {
+      colorIndex = (colorIndex + 1) % colors.length;
+      setColor(colors[colorIndex]);
+      tube.classList.remove('recolor');
+      void tube.offsetWidth;
+      tube.classList.add('recolor');
+    }, 3800);
+  }
+
+  function stopColorCycle(){
+    clearInterval(cycleTimer);
+    cycleTimer = null;
+  }
+
+  function turnOn(){
+    isOn = true;
+    room.classList.add('on');
+    switchBtn.setAttribute('aria-pressed', 'true');
+
+    colorIndex = 0;
+    setColor(colors[0]);
+
+    tube.classList.remove('flicker-on');
+    void tube.offsetWidth;
+    tube.classList.add('flicker-on');
+
+    flickerTimer = setTimeout(() => {
+      room.classList.add('lit');
+      startColorCycle();
+    }, 1300);
+  }
+
+  function turnOff(){
+    isOn = false;
+    room.classList.remove('on', 'lit');
+    switchBtn.setAttribute('aria-pressed', 'false');
+    tube.classList.remove('flicker-on', 'recolor');
+    clearTimeout(flickerTimer);
+    stopColorCycle();
+  }
+
+  switchBtn.addEventListener('click', () => {
+    isOn ? turnOff() : turnOn();
+  });
+
+  loginCard.addEventListener('submit', (e) => e.preventDefault());
+})();
+</script>
+
+</body>
+</html>
