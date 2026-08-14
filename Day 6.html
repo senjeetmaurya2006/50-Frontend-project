@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liquid State — Day 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: #04030F;
+        font-family: 'DM Sans', sans-serif;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      /* ── Blob animations ── */
+      @keyframes blob1 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        20%  { transform: translate(18vw, -12vh) scale(1.12); }
+        42%  { transform: translate(34vw, 8vh) scale(0.92); }
+        64%  { transform: translate(22vw, 28vh) scale(1.08); }
+        82%  { transform: translate(-8vw, 18vh) scale(1.04); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob2 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        25%  { transform: translate(-22vw, 14vh) scale(1.15); }
+        50%  { transform: translate(-8vw, -20vh) scale(0.88); }
+        75%  { transform: translate(16vw, -10vh) scale(1.06); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob3 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        30%  { transform: translate(14vw, 20vh) scale(0.94); }
+        55%  { transform: translate(-18vw, 12vh) scale(1.1); }
+        80%  { transform: translate(-6vw, -18vh) scale(1.02); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob4 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        22%  { transform: translate(-16vw, -22vh) scale(1.18); }
+        48%  { transform: translate(10vw, -14vh) scale(0.9); }
+        72%  { transform: translate(24vw, 10vh) scale(1.08); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob5 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        35%  { transform: translate(20vw, -16vh) scale(0.86); }
+        60%  { transform: translate(-12vw, -8vh) scale(1.14); }
+        85%  { transform: translate(-20vw, 22vh) scale(1.02); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob6 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        28%  { transform: translate(26vw, 18vh) scale(1.1); }
+        55%  { transform: translate(12vw, -24vh) scale(0.92); }
+        78%  { transform: translate(-18vw, 6vh) scale(1.06); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+      @keyframes blob7 {
+        0%   { transform: translate(0vw, 0vh) scale(1); }
+        18%  { transform: translate(-14vw, 20vh) scale(1.2); }
+        40%  { transform: translate(8vw, 30vh) scale(0.82); }
+        65%  { transform: translate(22vw, -6vh) scale(1.12); }
+        85%  { transform: translate(4vw, -20vh) scale(0.96); }
+        100% { transform: translate(0vw, 0vh) scale(1); }
+      }
+
+      /* ── Entrance animations ── */
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes badgePop {
+        from { opacity: 0; transform: scale(0.85); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+      @keyframes orbPulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50%      { opacity: 1;   transform: scale(1.08); }
+      }
+      @keyframes scrollBounce {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50%      { transform: translateX(-50%) translateY(6px); }
+      }
+
+      /* ── Scene ── */
+      .scene {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* ── Blob canvas ── */
+      .blob-canvas {
+        position: absolute;
+        inset: 0;
+        background: #04030F;
+        filter: blur(72px) contrast(16);
+        z-index: 0;
+      }
+
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+      }
+      .blob-1 { width: 620px; height: 620px; background: #7C3AED; top: -10%; left: -5%;   animation: blob1 22s ease-in-out infinite; }
+      .blob-2 { width: 520px; height: 520px; background: #0891B2; top: -15%; right: -8%;  animation: blob2 27s ease-in-out infinite; }
+      .blob-3 { width: 460px; height: 460px; background: #DB2777; top: 30%;  left: 15%;   animation: blob3 19s ease-in-out infinite; }
+      .blob-4 { width: 540px; height: 540px; background: #059669; bottom:-15%; left: -10%; animation: blob4 24s ease-in-out infinite; }
+      .blob-5 { width: 400px; height: 400px; background: #EA580C; bottom:-12%; right: -5%; animation: blob5 20s ease-in-out infinite; }
+      .blob-6 { width: 480px; height: 480px; background: #4F46E5; top: 45%;  right: 5%;   animation: blob6 30s ease-in-out infinite; }
+      .blob-7 { width: 300px; height: 300px; background: #BE185D; top: 20%;  left: 38%;   animation: blob7 16s ease-in-out infinite; }
+
+      /* ── Noise overlay ── */
+      .noise {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-size: 256px 256px;
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      /* ── Vignette ── */
+      .vignette {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, #04030F 100%);
+        pointer-events: none;
+      }
+
+      /* ── Content layers ── */
+      .content {
+        position: relative;
+        z-index: 10;
+      }
+
+      /* ── Nav ── */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 28px 48px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        backdrop-filter: blur(2px);
+      }
+
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo-orb {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7C3AED, #DB2777);
+        animation: orbPulse 3s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .logo-text {
+        font-size: 15px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+        letter-spacing: 0.02em;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 36px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        font-size: 14px;
+        font-weight: 400;
+        color: rgba(255,255,255,0.4);
+        text-decoration: none;
+        letter-spacing: 0.01em;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover { color: rgba(255,255,255,0.85); }
+
+      .nav-cta {
+        padding: 9px 22px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 100px;
+        color: rgba(255,255,255,0.75);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        letter-spacing: 0.02em;
+        transition: all 0.2s;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .nav-cta:hover {
+        background: rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.95);
+      }
+
+      /* ── Hero ── */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 97px);
+        padding: 0 24px 100px;
+        text-align: center;
+        position: relative;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: rgba(124,58,237,0.15);
+        border: 1px solid rgba(124,58,237,0.35);
+        border-radius: 100px;
+        margin-bottom: 40px;
+        animation: badgePop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #A78BFA;
+        box-shadow: 0 0 8px #A78BFA;
+        animation: orbPulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      .badge-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: #A78BFA;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-family: 'DM Mono', monospace;
+      }
+
+      .hero-title-solid {
+        font-family: 'Fraunces', serif;
+        font-size: clamp(72px, 11vw, 136px);
+        font-weight: 900;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        background: linear-gradient(160deg, #ffffff 0%, rgba(255,255,255,0.6) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+      }
+
+      .hero-title-italic {
+        font-family: 'Fraunces', serif;
+        font-style: italic;
+        font-size: clamp(72px, 11vw, 136px);
+        font-weight: 300;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        margin-bottom: 48px;
+        background: linear-gradient(160deg, #C4B5FD 0%, #67E8F9 55%, #F0ABFC 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+      }
+
+      .hero-subtitle {
+        max-width: 540px;
+        font-size: 18px;
+        line-height: 1.65;
+        font-weight: 300;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 56px;
+        letter-spacing: 0.01em;
+        animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.5s both;
+      }
+
+      .cta-group {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 72px;
+        animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.65s both;
+      }
+
+      .btn-primary {
+        padding: 14px 32px;
+        background: linear-gradient(135deg, #7C3AED, #4F46E5);
+        border: none;
+        border-radius: 100px;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        letter-spacing: 0.01em;
+        font-family: 'DM Sans', sans-serif;
+        transition: transform 0.25s, box-shadow 0.25s;
+        box-shadow: 0 0 40px rgba(124,58,237,0.4);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 60px rgba(124,58,237,0.65);
+      }
+
+      .btn-ghost {
+        padding: 14px 32px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 100px;
+        color: rgba(255,255,255,0.7);
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        letter-spacing: 0.01em;
+        font-family: 'DM Sans', sans-serif;
+        backdrop-filter: blur(16px);
+        transition: all 0.25s;
+      }
+      .btn-ghost:hover {
+        background: rgba(255,255,255,0.09);
+        color: rgba(255,255,255,0.95);
+        transform: translateY(-2px);
+      }
+
+      /* ── Feature pills ── */
+      .pills {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+        animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.8s both;
+      }
+
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 100px;
+        backdrop-filter: blur(12px);
+        transition: all 0.2s;
+        cursor: default;
+      }
+
+      .pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .pill-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: 0.04em;
+        font-family: 'DM Mono', monospace;
+        white-space: nowrap;
+      }
+
+      /* ── Scroll indicator ── */
+      .scroll-hint {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        opacity: 0.3;
+        animation: fadeUp 1s ease 1.2s both, scrollBounce 2.4s ease-in-out 1.8s infinite;
+      }
+
+      .scroll-label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-family: 'DM Mono', monospace;
+      }
+
+      .scroll-line {
+        width: 1px;
+        height: 40px;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+      }
+
+      /* ── Cards section ── */
+      .cards-section {
+        padding: 120px 48px 160px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .section-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.25);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-family: 'DM Mono', monospace;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      .section-heading {
+        font-family: 'Fraunces', serif;
+        font-size: clamp(36px, 4vw, 54px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: rgba(255,255,255,0.88);
+        text-align: center;
+        margin-bottom: 64px;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .card {
+        padding: 36px 32px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        transition: all 0.3s;
+        cursor: default;
+      }
+      .card:hover {
+        background: rgba(255,255,255,0.06);
+        transform: translateY(-4px);
+        box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+      }
+
+      .card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        animation: orbPulse 3s ease-in-out infinite;
+      }
+
+      .card-icon-inner {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+      }
+
+      .card-title {
+        font-family: 'Fraunces', serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 14px;
+        letter-spacing: -0.01em;
+      }
+
+      .card-body {
+        font-size: 14px;
+        line-height: 1.75;
+        color: rgba(255,255,255,0.38);
+        font-weight: 300;
+      }
+
+      /* ── Stats strip ── */
+      .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: rgba(255,255,255,0.07);
+        border-top: 1px solid rgba(255,255,255,0.07);
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        margin: 0 48px;
+        max-width: 1104px;
+        margin: 0 auto 160px;
+      }
+
+      .stat {
+        padding: 48px 40px;
+        background: #04030F;
+        text-align: center;
+        transition: background 0.2s;
+      }
+      .stat:hover { background: rgba(255,255,255,0.02); }
+
+      .stat-value {
+        font-family: 'Fraunces', serif;
+        font-size: 52px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        font-weight: 400;
+        color: rgba(255,255,255,0.3);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-family: 'DM Mono', monospace;
+      }
+
+      /* ── Footer ── */
+      footer {
+        border-top: 1px solid rgba(255,255,255,0.06);
+        padding: 40px 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .footer-copy {
+        font-size: 13px;
+        color: rgba(255,255,255,0.2);
+        letter-spacing: 0.01em;
+      }
+
+      .footer-links {
+        display: flex;
+        gap: 28px;
+      }
+
+      .footer-links a {
+        font-size: 13px;
+        color: rgba(255,255,255,0.25);
+        text-decoration: none;
+        transition: color 0.2s;
+        font-family: 'DM Mono', monospace;
+        letter-spacing: 0.02em;
+      }
+      .footer-links a:hover { color: rgba(255,255,255,0.6); }
+
+      /* ── Responsive ── */
+      @media (max-width: 900px) {
+        nav { padding: 20px 24px; }
+        .nav-links { display: none; }
+        .cards-grid { grid-template-columns: 1fr; }
+        .stats-strip { grid-template-columns: repeat(2, 1fr); }
+        .cards-section { padding: 80px 24px 100px; }
+        footer { flex-direction: column; gap: 20px; text-align: center; }
+        .cta-group { flex-direction: column; align-items: center; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+
+      <!-- Metaball blob canvas -->
+      <div class="blob-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+        <div class="blob blob-5"></div>
+        <div class="blob blob-6"></div>
+        <div class="blob blob-7"></div>
+      </div>
+
+      <!-- Grain texture -->
+      <div class="noise"></div>
+
+      <!-- Vignette -->
+      <div class="vignette"></div>
+
+      <!-- All visible content -->
+      <div class="content">
+
+        <!-- Navigation -->
+        <nav>
+          <div class="nav-logo">
+            <div class="logo-orb"></div>
+            <span class="logo-text">LiquidOS</span>
+          </div>
+          <ul class="nav-links">
+            <li><a href="#">Motion</a></li>
+            <li><a href="#">Physics</a></li>
+            <li><a href="#">Design</a></li>
+            <li><a href="#">Studio</a></li>
+          </ul>
+          <button class="nav-cta">Get access</button>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero">
+          <div class="badge">
+            <div class="badge-dot"></div>
+            <span class="badge-text">Day 6 &middot; Liquid Blob Morph</span>
+          </div>
+
+          <div class="hero-title-solid">Liquid</div>
+          <div class="hero-title-italic">State</div>
+
+          <p class="hero-subtitle">
+            Metaball physics rendered in real-time — blobs of color that merge,
+            split, and breathe like living organisms beneath your interface.
+          </p>
+
+          <div class="cta-group">
+            <button class="btn-primary">Explore the motion</button>
+            <button class="btn-ghost">View source</button>
+          </div>
+
+          <div class="pills">
+            <div class="pill" style="border: 1px solid rgba(167,139,250,0.3);">
+              <div class="pill-dot" style="background:#A78BFA; box-shadow:0 0 8px #A78BFA;"></div>
+              <span class="pill-label">Metaball merge</span>
+            </div>
+            <div class="pill" style="border: 1px solid rgba(103,232,249,0.3);">
+              <div class="pill-dot" style="background:#67E8F9; box-shadow:0 0 8px #67E8F9;"></div>
+              <span class="pill-label">CSS blur + contrast</span>
+            </div>
+            <div class="pill" style="border: 1px solid rgba(249,168,212,0.3);">
+              <div class="pill-dot" style="background:#F9A8D4; box-shadow:0 0 8px #F9A8D4;"></div>
+              <span class="pill-label">7-body physics</span>
+            </div>
+            <div class="pill" style="border: 1px solid rgba(52,211,153,0.3);">
+              <div class="pill-dot" style="background:#34D399; box-shadow:0 0 8px #34D399;"></div>
+              <span class="pill-label">60fps smooth</span>
+            </div>
+          </div>
+
+          <div class="scroll-hint">
+            <span class="scroll-label">Scroll</span>
+            <div class="scroll-line"></div>
+          </div>
+        </section>
+
+        <!-- Stats strip -->
+        <div class="stats-strip">
+          <div class="stat">
+            <div class="stat-value" style="background:linear-gradient(135deg,#C4B5FD,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">7</div>
+            <div class="stat-label">Live bodies</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="background:linear-gradient(135deg,#67E8F9,#0891B2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">72px</div>
+            <div class="stat-label">Blur radius</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="background:linear-gradient(135deg,#F9A8D4,#DB2777);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">16×</div>
+            <div class="stat-label">Contrast boost</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="background:linear-gradient(135deg,#6EE7B7,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">∞</div>
+            <div class="stat-label">Loop duration</div>
+          </div>
+        </div>
+
+        <!-- Cards -->
+        <section class="cards-section">
+          <div class="section-label">How it works</div>
+          <h2 class="section-heading">The physics of liquid form</h2>
+
+          <div class="cards-grid">
+
+            <div class="card" style="border: 1px solid rgba(167,139,250,0.18);">
+              <div class="card-icon" style="background:rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3);">
+                <div class="card-icon-inner" style="background:#A78BFA; box-shadow:0 0 14px #A78BFA;"></div>
+              </div>
+              <div class="card-title">Organic merge</div>
+              <p class="card-body">Blobs find each other through proximity and fuse into unified forms, then split again — emergent behavior from simple physics with no hard-coded interactions.</p>
+            </div>
+
+            <div class="card" style="border: 1px solid rgba(103,232,249,0.18);">
+              <div class="card-icon" style="background:rgba(103,232,249,0.1); border: 1px solid rgba(103,232,249,0.3);">
+                <div class="card-icon-inner" style="background:#67E8F9; box-shadow:0 0 14px #67E8F9;"></div>
+              </div>
+              <div class="card-title">Color fusion</div>
+              <p class="card-body">Where blobs overlap, their pigments mix in the frequency domain — not additive blending, but true spectral synthesis produced by gaussian blur before threshold.</p>
+            </div>
+
+            <div class="card" style="border: 1px solid rgba(249,168,212,0.18);">
+              <div class="card-icon" style="background:rgba(249,168,212,0.1); border: 1px solid rgba(249,168,212,0.3);">
+                <div class="card-icon-inner" style="background:#F9A8D4; box-shadow:0 0 14px #F9A8D4;"></div>
+              </div>
+              <div class="card-title">Perpetual motion</div>
+              <p class="card-body">Each body follows its own elliptical orbit at its own cadence. The system never repeats — no two seconds look alike, no pattern ever resolves.</p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+          <div class="footer-left">
+            <div class="logo-orb" style="width:20px;height:20px;"></div>
+            <span class="footer-copy">Day 6 of 30 &mdash; Motion Design Challenge</span>
+          </div>
+          <div class="footer-links">
+            <a href="#">Source</a>
+            <a href="#">Prev day</a>
+            <a href="#">Next day</a>
+          </div>
+        </footer>
+
+      </div><!-- /content -->
+    </div><!-- /scene -->
+  </body>
+</html>

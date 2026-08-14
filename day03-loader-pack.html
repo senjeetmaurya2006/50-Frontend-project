@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 03/50 — Oddly Satisfying Loader Pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0d0f14;
+    --bg-2:#07080b;
+    --ink:#eef0f3;
+    --muted:#8a8f9a;
+    --card-border: rgba(255,255,255,.08);
+    --c-liquid:#22d3ee;
+    --c-blob-a:#c084fc;
+    --c-blob-b:#ec4899;
+    --c-ring:#ffb13d;
+    --c-dot-a:#34d399;
+    --c-dot-b:#818cf8;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(255,255,255,.05) 0%, transparent 55%),
+      radial-gradient(circle at 50% 100%, rgba(120,80,255,.06) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+  }
+
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: clamp(28px, 6vh, 56px) 20px 60px;
+  }
+
+  .eyebrow{
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:0;
+    animation: fadeUp .6s ease forwards;
+  }
+
+  h1{
+    font-size: clamp(28px, 5vw, 44px);
+    margin: 10px 0 6px;
+    font-weight:700;
+    letter-spacing:-.01em;
+    text-align:center;
+    opacity:0;
+    animation: fadeUp .6s ease .08s forwards;
+    background: linear-gradient(90deg, #fff, #b9c2d0);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size: clamp(13px, 2vw, 15px);
+    margin: 0 0 clamp(32px, 6vh, 54px);
+    text-align:center;
+    opacity:0;
+    animation: fadeUp .6s ease .16s forwards;
+  }
+
+  .grid{
+    width:100%;
+    max-width: 900px;
+    display:grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: clamp(16px, 3vw, 26px);
+  }
+
+  @media (max-width: 620px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    position:relative;
+    border-radius:20px;
+    padding: 30px 20px 24px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height: 230px;
+    background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 50px -18px rgba(0,0,0,.6);
+    overflow:hidden;
+    opacity:0;
+    transform: translateY(14px);
+    animation: fadeUp .6s ease forwards;
+    transition: transform .35s ease, border-color .35s ease;
+  }
+  .card:hover{ transform: translateY(-4px); }
+  .card:nth-child(1){ animation-delay:.26s; }
+  .card:nth-child(2){ animation-delay:.34s; }
+  .card:nth-child(3){ animation-delay:.42s; }
+  .card:nth-child(4){ animation-delay:.5s; }
+
+  .card::before{
+    content:"";
+    position:absolute; inset:-1px;
+    border-radius:20px;
+    padding:1px;
+    background: linear-gradient(140deg, var(--glow, #fff2), transparent 40%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events:none;
+  }
+
+  .card.liquid{ --glow: var(--c-liquid); }
+  .card.blob{ --glow: var(--c-blob-b); }
+  .card.ring{ --glow: var(--c-ring); }
+  .card.dots{ --glow: var(--c-dot-b); }
+
+  .label{
+    margin-top:22px;
+    font-weight:600;
+    font-size:14.5px;
+    letter-spacing:.01em;
+  }
+  .label small{
+    display:block;
+    margin-top:3px;
+    font-weight:400;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- 1. Liquid fill ---------- */
+  .liquid-wrap{ position:relative; width:120px; height:120px; }
+  .liquid-wrap svg{ width:100%; height:100%; display:block; }
+  .liquid-ring{ fill:none; stroke:rgba(255,255,255,.12); stroke-width:2; }
+  .wave{ fill: var(--c-liquid); opacity:.9; }
+  .wave.w2{ opacity:.45; }
+  .liquid-percent{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:20px;
+    color:#fff;
+    text-shadow: 0 0 14px rgba(34,211,238,.7);
+    mix-blend-mode: normal;
+  }
+
+  /* ---------- 2. Morphing blob ---------- */
+  .blob{
+    width:110px; height:110px;
+    background: linear-gradient(135deg, var(--c-blob-a), var(--c-blob-b));
+    filter: drop-shadow(0 0 26px rgba(236,72,153,.45));
+    animation: blobMorph 6s ease-in-out infinite, blobSpin 14s linear infinite;
+  }
+  @keyframes blobMorph{
+    0%,100%{ border-radius: 60% 40% 30% 70% / 50% 60% 30% 40%; }
+    25%{ border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    50%{ border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%; }
+    75%{ border-radius: 70% 30% 50% 50% / 60% 40% 60% 40%; }
+  }
+  @keyframes blobSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  /* ---------- 3. Gradient ring ---------- */
+  .ring-wrap{ width:110px; height:110px; position:relative; animation: ringSpin 1.7s linear infinite; }
+  @keyframes ringSpin{ to{ transform:rotate(360deg); } }
+  .ring-track{
+    width:100%; height:100%; border-radius:50%;
+    background: conic-gradient(from 0deg, transparent 0deg, var(--c-ring) 300deg, transparent 340deg);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+  }
+  .ring-head{
+    position:absolute; top:0; left:50%;
+    width:14px; height:14px; margin-left:-7px;
+    border-radius:50%;
+    background: var(--c-ring);
+    box-shadow: 0 0 14px 4px rgba(255,177,61,.85);
+  }
+
+  /* ---------- 4. Pulse dots ---------- */
+  .dots-wrap{ display:flex; align-items:flex-end; gap:11px; height:60px; }
+  .pdot{
+    width:14px; height:14px;
+    border-radius:50%;
+    animation: dotBounce 1.1s ease-in-out infinite;
+  }
+  @keyframes dotBounce{
+    0%,100%{ transform:translateY(0); opacity:.45; }
+    50%{ transform:translateY(-22px); opacity:1; }
+  }
+  .pdot:nth-child(1){ background:var(--c-dot-a); animation-delay:0s; }
+  .pdot:nth-child(2){ background:#5fdba0; animation-delay:.1s; }
+  .pdot:nth-child(3){ background:#7fd6c2; animation-delay:.2s; }
+  .pdot:nth-child(4){ background:#9bb3ec; animation-delay:.3s; }
+  .pdot:nth-child(5){ background:var(--c-dot-b); animation-delay:.4s; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="eyebrow">Day 03 / 50 — Loader Pack</div>
+  <h1>Oddly Satisfying Loaders</h1>
+  <p class="sub">Four loaders built to be watched, not skipped.</p>
+
+  <div class="grid">
+
+    <div class="card liquid">
+      <div class="liquid-wrap">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <clipPath id="liquidClip"><circle cx="100" cy="100" r="92"></circle></clipPath>
+          </defs>
+          <circle class="liquid-ring" cx="100" cy="100" r="92"></circle>
+          <g clip-path="url(#liquidClip)">
+            <path id="wave1" class="wave w1" d=""></path>
+            <path id="wave2" class="wave w2" d=""></path>
+          </g>
+        </svg>
+        <div class="liquid-percent" id="liquidPercent">0%</div>
+      </div>
+      <div class="label">Liquid Fill<small>Watch it breathe</small></div>
+    </div>
+
+    <div class="card blob">
+      <div class="blob"></div>
+      <div class="label">Morphing Blob<small>Never the same shape twice</small></div>
+    </div>
+
+    <div class="card ring">
+      <div class="ring-wrap">
+        <div class="ring-track"></div>
+        <div class="ring-head"></div>
+      </div>
+      <div class="label">Gradient Ring<small>A comet on a loop</small></div>
+    </div>
+
+    <div class="card dots">
+      <div class="dots-wrap">
+        <div class="pdot"></div>
+        <div class="pdot"></div>
+        <div class="pdot"></div>
+        <div class="pdot"></div>
+        <div class="pdot"></div>
+      </div>
+      <div class="label">Pulse Wave<small>A rhythm you can feel</small></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  // ----- liquid fill: JS-driven wave rise + synced percentage -----
+  const wave1 = document.getElementById('wave1');
+  const wave2 = document.getElementById('wave2');
+  const percentEl = document.getElementById('liquidPercent');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const WIDTH = 200;
+  const AMPLITUDE = 6;
+  const WAVELENGTH = 200;
+
+  function buildWavePath(offsetX, levelY){
+    let d = `M ${-WAVELENGTH} ${levelY}`;
+    const steps = 24;
+    for (let i = 0; i <= steps; i++){
+      const x = -WAVELENGTH + (i / steps) * (WAVELENGTH * 3);
+      const y = levelY + Math.sin((x + offsetX) / WAVELENGTH * Math.PI * 2) * AMPLITUDE;
+      d += ` L ${x} ${y}`;
+    }
+    d += ` L ${WAVELENGTH * 2} 220 L ${-WAVELENGTH} 220 Z`;
+    return d;
+  }
+
+  let t = 0;
+  function loop(){
+    t += reduceMotion ? 0 : 1;
+    const cycle = (Math.sin(t / 130) + 1) / 2;        // 0 -> 1 -> 0 breathing
+    const levelY = 190 - cycle * 150;                   // vertical fill level
+    const percent = Math.round(cycle * 100);
+
+    wave1.setAttribute('d', buildWavePath(t * 1.4, levelY));
+    wave2.setAttribute('d', buildWavePath(-t * 1.1 + 60, levelY + 4));
+    percentEl.textContent = percent + '%';
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

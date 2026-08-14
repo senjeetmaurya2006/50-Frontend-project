@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 04/50 — Magnetic Cursor Buttons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0d0e13;
+    --bg-2:#07070a;
+    --ink:#f1f2f5;
+    --muted:#8a8d99;
+    --accent:#7c5cff;
+    --accent-2:#40e0ff;
+    --card-border: rgba(255,255,255,.09);
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(124,92,255,.16) 0%, transparent 55%),
+      radial-gradient(circle at 50% 100%, rgba(64,224,255,.08) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(30px, 6vh, 50px);
+    padding: 40px 20px;
+  }
+
+  .head{ text-align:center; max-width:520px; }
+
+  .eyebrow{
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:0;
+    animation: fadeUp .6s ease forwards;
+  }
+
+  h1{
+    font-size: clamp(30px, 5.4vw, 48px);
+    margin: 12px 0 8px;
+    font-weight:700;
+    letter-spacing:-.01em;
+    opacity:0;
+    animation: fadeUp .6s ease .08s forwards;
+    background: linear-gradient(90deg, #fff, #c6c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size: clamp(13px, 2vw, 15.5px);
+    margin:0;
+    opacity:0;
+    animation: fadeUp .6s ease .16s forwards;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- primary magnetic button ---------- */
+  .magnetic{
+    position:relative;
+    border:none;
+    cursor:pointer;
+    background:none;
+    -webkit-tap-highlight-color: transparent;
+    will-change: transform;
+  }
+
+  .magnetic-primary{
+    padding: 20px 46px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #5b3df0);
+    box-shadow: 0 18px 40px -12px rgba(124,92,255,.65), inset 0 1px 0 rgba(255,255,255,.25);
+    opacity:0;
+    animation: fadeUp .6s ease .26s forwards;
+  }
+
+  .magnetic-primary .magnetic-inner{
+    display:block;
+    font-size: clamp(15px, 2.2vw, 17px);
+    font-weight:600;
+    letter-spacing:.02em;
+    color:#fff;
+  }
+
+  .magnetic-primary:active{ transform: scale(.97) !important; }
+
+  /* ---------- icon row ---------- */
+  .icon-row{
+    display:flex;
+    gap: clamp(14px, 3vw, 24px);
+    flex-wrap:wrap;
+    justify-content:center;
+    opacity:0;
+    animation: fadeUp .6s ease .36s forwards;
+  }
+
+  .magnetic-icon{
+    width:64px; height:64px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+    border: 1px solid var(--card-border);
+    box-shadow: 0 14px 30px -14px rgba(0,0,0,.65);
+    transition: border-color .3s ease, box-shadow .3s ease;
+  }
+
+  .magnetic-icon:hover{
+    border-color: rgba(124,92,255,.55);
+    box-shadow: 0 14px 30px -10px rgba(124,92,255,.4);
+  }
+
+  .magnetic-icon:active{ transform: scale(.94) !important; }
+
+  .magnetic-icon svg{
+    width:22px; height:22px;
+    stroke: var(--ink);
+    fill:none;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    pointer-events:none;
+  }
+
+  .hint{
+    margin-top:4px;
+    font-size: clamp(11px, 1.8vw, 12.5px);
+    color: var(--muted);
+    letter-spacing:.04em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    opacity:0;
+    animation: fadeUp .6s ease .46s forwards;
+  }
+
+  .hint .dot{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 8px 2px var(--accent-2);
+    animation: dotPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse{
+    0%,100%{ transform:scale(1); opacity:1; }
+    50%{ transform:scale(1.5); opacity:.5; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="head">
+    <div class="eyebrow">Day 04 / 50 — Magnetic Buttons</div>
+    <h1>Get Close. Feel The Pull.</h1>
+    <p class="sub">These buttons notice your cursor before you even click — move near one and watch it reach for you.</p>
+  </div>
+
+  <button class="magnetic magnetic-primary" data-radius="170" data-strength="0.5">
+    <span class="magnetic-inner">Get Started</span>
+  </button>
+
+  <div class="icon-row">
+    <button class="magnetic magnetic-icon" data-radius="95" data-strength="0.6" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7Z"></path></svg>
+    </button>
+    <button class="magnetic magnetic-icon" data-radius="95" data-strength="0.6" aria-label="Like">
+      <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6Z"></path></svg>
+    </button>
+    <button class="magnetic magnetic-icon" data-radius="95" data-strength="0.6" aria-label="Star">
+      <svg viewBox="0 0 24 24"><path d="M12 2 15 9l7.5 1-5.5 5 1.5 7.5-6.5-4-6.5 4L7 15 1.5 10 9 9Z"></path></svg>
+    </button>
+    <button class="magnetic magnetic-icon" data-radius="95" data-strength="0.6" aria-label="Mail">
+      <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5"></rect><path d="m3 6 9 7 9-7"></path></svg>
+    </button>
+    <button class="magnetic magnetic-icon" data-radius="95" data-strength="0.6" aria-label="Bolt">
+      <svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path></svg>
+    </button>
+  </div>
+
+  <div class="hint"><span class="dot"></span> Move your cursor near a button</div>
+</div>
+
+<script>
+(function(){
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = Array.from(document.querySelectorAll('.magnetic'));
+
+  const magnets = els.map((el) => ({
+    el,
+    inner: el.querySelector('.magnetic-inner'),
+    radius: parseFloat(el.dataset.radius) || 100,
+    strength: parseFloat(el.dataset.strength) || 0.5,
+    targetX: 0, targetY: 0,
+    curX: 0, curY: 0,
+  }));
+
+  let mouseX = -9999, mouseY = -9999;
+
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  window.addEventListener('mouseleave', () => {
+    mouseX = -9999; mouseY = -9999;
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]){
+      mouseX = e.touches[0].clientX;
+      mouseY = e.touches[0].clientY;
+    }
+  }, { passive:true });
+
+  function update(){
+    for (const m of magnets){
+      const rect = m.el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = mouseX - cx;
+      const dy = mouseY - cy;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < m.radius){
+        const pull = 1 - dist / m.radius;
+        m.targetX = dx * pull * m.strength;
+        m.targetY = dy * pull * m.strength;
+      } else {
+        m.targetX = 0;
+        m.targetY = 0;
+      }
+
+      const ease = reduceMotion ? 1 : 0.16;
+      m.curX += (m.targetX - m.curX) * ease;
+      m.curY += (m.targetY - m.curY) * ease;
+
+      m.el.style.transform = `translate(${m.curX.toFixed(2)}px, ${m.curY.toFixed(2)}px)`;
+      if (m.inner){
+        m.inner.style.transform = `translate(${(m.curX * 0.4).toFixed(2)}px, ${(m.curY * 0.4).toFixed(2)}px)`;
+      }
+    }
+    requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+})();
+</script>
+
+</body>
+</html>

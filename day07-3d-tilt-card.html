@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 07/50 — 3D Tilt Product Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0d0e13;
+    --bg-2:#06070a;
+    --ink:#f1f2f5;
+    --muted:#8a8d99;
+    --accent:#7c5cff;
+    --accent-2:#22d3ee;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(124,92,255,.14) 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+  }
+
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(30px, 6vh, 48px);
+    padding: 40px 20px;
+  }
+
+  .head{ text-align:center; max-width:480px; }
+
+  .eyebrow{
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:0;
+    animation: fadeUp .6s ease forwards;
+  }
+
+  h1{
+    font-size: clamp(28px, 5vw, 42px);
+    margin: 12px 0 8px;
+    font-weight:700;
+    letter-spacing:-.01em;
+    opacity:0;
+    animation: fadeUp .6s ease .08s forwards;
+    background: linear-gradient(90deg, #fff, #c6c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size: clamp(13px, 2vw, 15px);
+    margin:0;
+    opacity:0;
+    animation: fadeUp .6s ease .16s forwards;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- card ---------- */
+  .stage{
+    perspective: 1000px;
+    opacity:0;
+    animation: fadeUp .7s ease .26s forwards;
+  }
+
+  .card{
+    position:relative;
+    width: min(84vw, 300px);
+    height: min(84vw, 390px);
+    border-radius:26px;
+    background: linear-gradient(165deg, #171a22, #0d0f14 60%);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,.75);
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0) rotateY(0);
+    will-change: transform;
+    overflow:hidden;
+    cursor: pointer;
+  }
+
+  .card.tilting{ transition:none; }
+  .card:not(.tilting){ transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .6s ease; }
+
+  .card::before{
+    content:"";
+    position:absolute; inset:0;
+    border-radius:26px;
+    padding:1px;
+    background: linear-gradient(140deg, rgba(124,92,255,.55), rgba(34,211,238,.15) 40%, transparent 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events:none;
+  }
+
+  .glare{
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 50% 30%, rgba(255,255,255,.22), transparent 55%);
+    mix-blend-mode: overlay;
+    pointer-events:none;
+    transform: translateZ(1px);
+  }
+
+  .badge{
+    position:absolute; top:18px; left:18px;
+    padding: 5px 12px;
+    border-radius:999px;
+    background: rgba(124,92,255,.18);
+    border: 1px solid rgba(124,92,255,.4);
+    color: #c9beff;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    font-weight:600;
+    transform: translateZ(40px);
+  }
+
+  .gem-wrap{
+    position:absolute;
+    top: 14%;
+    left:50%;
+    transform: translate(-50%, 0) translateZ(60px);
+    width:150px; height:150px;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .gem-parallax{
+    width:130px; height:130px;
+    will-change: transform;
+  }
+
+  .gem{
+    width:130px; height:130px;
+    clip-path: polygon(50% 0%, 90% 34%, 78% 100%, 22% 100%, 10% 34%);
+    background: conic-gradient(from 210deg at 50% 38%, #7c5cff, #22d3ee, #ff8fd6, #7c5cff);
+    filter: drop-shadow(0 22px 34px rgba(124,92,255,.55));
+    animation: gemFloat 5s ease-in-out infinite;
+  }
+
+  .gem::after{
+    content:"";
+    position:absolute; inset:0;
+    clip-path: polygon(50% 0%, 90% 34%, 78% 100%, 22% 100%, 10% 34%);
+    background:
+      linear-gradient(115deg, transparent 30%, rgba(255,255,255,.5) 44%, transparent 52%),
+      linear-gradient(70deg, transparent 60%, rgba(255,255,255,.28) 68%, transparent 76%);
+  }
+
+  @keyframes gemFloat{
+    0%,100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-8px) rotate(3deg); }
+  }
+
+  .info{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    padding: 20px 22px 24px;
+    transform: translateZ(30px);
+  }
+
+  .info h2{
+    margin:0 0 4px;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+
+  .info p{
+    margin:0 0 16px;
+    font-size:12.5px;
+    color: var(--muted);
+    line-height:1.5;
+  }
+
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .price{
+    font-size:20px;
+    font-weight:700;
+    color:#fff;
+  }
+  .price small{
+    display:block;
+    font-size:10px;
+    font-weight:400;
+    color: var(--muted);
+    letter-spacing:.06em;
+  }
+
+  .buy{
+    padding: 10px 18px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    background: linear-gradient(135deg, var(--accent), #5b3df0);
+    color:#fff;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    letter-spacing:.02em;
+    box-shadow: 0 12px 26px -8px rgba(124,92,255,.65);
+  }
+  .buy:active{ transform: scale(.96); }
+
+  .hint{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:11.5px;
+    color:var(--muted);
+    letter-spacing:.05em;
+    opacity:0;
+    animation: fadeUp .6s ease .5s forwards;
+  }
+  .hint .dot{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 8px 2px var(--accent-2);
+    animation: dotPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes dotPulse{
+    0%,100%{ transform:scale(1); opacity:1; }
+    50%{ transform:scale(1.5); opacity:.5; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="head">
+    <div class="eyebrow">Day 07 / 50 — 3D Tilt Product Card</div>
+    <h1>Light. Depth. Motion.</h1>
+    <p class="sub">Move your cursor across the card — it tilts in real 3D and catches the light like glass.</p>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="badge">NEW DROP</div>
+      <div class="gem-wrap">
+        <div class="gem-parallax" id="gemParallax">
+          <div class="gem"></div>
+        </div>
+      </div>
+      <div class="glare" id="glare"></div>
+      <div class="info">
+        <h2>Aurora Prism</h2>
+        <p>Hand-cut light, redefined.</p>
+        <div class="row">
+          <div class="price">$129<small>Limited edition</small></div>
+          <button class="buy">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint"><span class="dot"></span> Move your cursor across the card</div>
+</div>
+
+<script>
+(function(){
+  const card = document.getElementById('card');
+  const glare = document.getElementById('glare');
+  const gem = document.getElementById('gemParallax');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const MAX_TILT = 14;
+
+  function handleMove(clientX, clientY){
+    const rect = card.getBoundingClientRect();
+    const px = (clientX - rect.left) / rect.width;
+    const py = (clientY - rect.top) / rect.height;
+
+    const rotateY = (px - 0.5) * MAX_TILT * 2;
+    const rotateX = (0.5 - py) * MAX_TILT * 2;
+
+    card.classList.add('tilting');
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03,1.03,1.03)`;
+    card.style.boxShadow = `${(-rotateY*1.6).toFixed(1)}px ${(rotateX*1.6 + 28).toFixed(1)}px 60px -18px rgba(0,0,0,.7)`;
+
+    glare.style.background = `radial-gradient(circle at ${px*100}% ${py*100}%, rgba(255,255,255,.28), transparent 55%)`;
+
+    if (!reduceMotion){
+      gem.style.transform = `translate(${(px-0.5)*-22}px, ${(py-0.5)*-16}px)`;
+    }
+  }
+
+  card.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+
+  card.addEventListener('mouseleave', () => {
+    card.classList.remove('tilting');
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
+    card.style.boxShadow = '0 30px 70px -20px rgba(0,0,0,.75)';
+    glare.style.background = 'radial-gradient(circle at 50% 30%, rgba(255,255,255,.22), transparent 55%)';
+    gem.style.transform = 'translate(0,0)';
+  });
+
+  card.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]){
+      handleMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive:true });
+})();
+</script>
+
+</body>
+</html>
