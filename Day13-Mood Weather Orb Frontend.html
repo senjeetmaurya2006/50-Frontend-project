@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 13 · Mood &amp; Weather Orb</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;1,9..144,200;1,9..144,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root { --oc: 255, 165, 30; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #05050d;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #gl {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+
+    /* ── UI overlay ── */
+    .ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .header {
+      padding: 2.1rem 1rem 0;
+      text-align: center;
+    }
+
+    .eyebrow {
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 0.4rem;
+    }
+
+    .headline {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.15rem, 3vw, 1.85rem);
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(255,255,255,0.68);
+      letter-spacing: -0.025em;
+    }
+
+    /* Orb breathing space */
+    .orb-space { flex: 1; }
+
+    /* State display */
+    .state-area {
+      text-align: center;
+      padding: 0 1.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .state-name {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.8rem, 8.5vw, 5.4rem);
+      font-weight: 200;
+      font-style: italic;
+      line-height: 1.05;
+      color: rgb(var(--oc));
+      text-shadow:
+        0 0 40px rgba(var(--oc), 0.5),
+        0 0 100px rgba(var(--oc), 0.2);
+      margin-bottom: 0.45rem;
+    }
+
+    .state-desc {
+      font-size: clamp(0.76rem, 1.7vw, 0.87rem);
+      font-weight: 300;
+      line-height: 1.6;
+      letter-spacing: 0.022em;
+      color: rgba(255,255,255,0.34);
+      max-width: 42ch;
+      margin: 0 auto;
+    }
+
+    /* Bottom controls */
+    .controls {
+      width: 100%;
+      max-width: 560px;
+      padding: 1.4rem 1.25rem 2.1rem;
+      pointer-events: auto;
+      background: linear-gradient(
+        to top,
+        rgba(5,5,13,1)   0%,
+        rgba(5,5,13,0.9) 52%,
+        transparent      100%
+      );
+    }
+
+    .tabs {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.04);
+      margin-bottom: 0.9rem;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.48rem 0.75rem;
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255,255,255,0.35);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .tab:hover:not(.active) { color: rgba(255,255,255,0.58); }
+
+    .tab.active {
+      background: rgba(var(--oc), 0.14);
+      color: rgb(var(--oc));
+      box-shadow: 0 0 18px rgba(var(--oc), 0.1);
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.42rem;
+      justify-content: center;
+      transition: opacity 0.22s ease;
+    }
+
+    .pills.fading { opacity: 0; }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 0.32rem;
+      padding: 0.46rem 0.95rem;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.46);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.77rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition:
+        border-color 0.3s ease,
+        background   0.3s ease,
+        color        0.3s ease,
+        box-shadow   0.3s ease;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+
+    .pill:hover {
+      border-color: rgba(var(--oc), 0.44);
+      background:   rgba(var(--oc), 0.07);
+      color: rgba(255,255,255,0.82);
+    }
+
+    .pill.active {
+      border-color: rgba(var(--oc), 0.62);
+      background:   rgba(var(--oc), 0.13);
+      color: rgba(255,255,255,0.95);
+      box-shadow: 0 0 18px rgba(var(--oc), 0.14);
+    }
+
+    .pill-icon { font-size: 0.92rem; line-height: 1; }
+
+    /* Tiny instruction nudge */
+    .hint {
+      position: fixed;
+      top: 50%;
+      right: 1.5rem;
+      transform: translateY(-50%);
+      writing-mode: vertical-rl;
+      font-size: 0.6rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.13);
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+
+<div class="ui">
+  <div class="header">
+    <div class="eyebrow">Day 13 &nbsp;·&nbsp; Interactive</div>
+    <h1 class="headline">Mood &amp; Weather Orb</h1>
+  </div>
+  <div class="orb-space"></div>
+  <div class="state-area">
+    <div class="state-name" id="stateName">Happy</div>
+    <div class="state-desc" id="stateDesc">Warm light radiates from within — bright, expansive, alive</div>
+  </div>
+  <div class="controls">
+    <div class="tabs">
+      <button class="tab active" data-mode="mood">Mood</button>
+      <button class="tab"        data-mode="weather">Weather</button>
+    </div>
+    <div class="pills" id="pillsEl"></div>
+  </div>
+</div>
+
+<div class="hint">Select a state</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// STATE DATA
+// ─────────────────────────────────────────────────────────────
+const MODES = {
+  mood: [
+    { id:'happy',     icon:'☀️',  label:'Happy',
+      desc:'Warm light radiates from within — bright, expansive, alive',
+      cA:[1.00,0.82,0.20], cB:[1.00,0.45,0.08], cC:[1.00,0.96,0.65],
+      turbulence:0.20, speed:0.55, orbitSpeed:0.35, orbitRadius:0.08 },
+    { id:'calm',      icon:'🌊',  label:'Calm',
+      desc:'Still waters beneath the surface — soft, unhurried, at peace',
+      cA:[0.20,0.78,0.72], cB:[0.10,0.50,0.65], cC:[0.65,0.95,0.92],
+      turbulence:0.08, speed:0.22, orbitSpeed:0.15, orbitRadius:0.05 },
+    { id:'sad',       icon:'🌧',  label:'Sad',
+      desc:'Heavy and deep — colours recede toward the periphery',
+      cA:[0.28,0.32,0.62], cB:[0.18,0.22,0.45], cC:[0.52,0.56,0.78],
+      turbulence:0.14, speed:0.18, orbitSpeed:0.10, orbitRadius:0.04 },
+    { id:'anxious',   icon:'⚡',  label:'Anxious',
+      desc:'Restless energy twists and fractures — nothing holds still',
+      cA:[0.78,0.10,0.88], cB:[0.35,0.05,0.72], cC:[1.00,0.40,0.90],
+      turbulence:0.85, speed:1.30, orbitSpeed:1.00, orbitRadius:0.15 },
+    { id:'energetic', icon:'🔥',  label:'Energetic',
+      desc:'Kinetic fire surging outward — burning bright, unstoppable',
+      cA:[1.00,0.28,0.05], cB:[1.00,0.62,0.00], cC:[1.00,0.12,0.28],
+      turbulence:0.50, speed:0.90, orbitSpeed:0.70, orbitRadius:0.12 },
+  ],
+  weather: [
+    { id:'sunny',   icon:'☀️',  label:'Sunny',
+      desc:'Golden light floods outward — warm, generous, infinite',
+      cA:[1.00,0.90,0.30], cB:[1.00,0.60,0.10], cC:[1.00,0.98,0.80],
+      turbulence:0.10, speed:0.38, orbitSpeed:0.28, orbitRadius:0.10 },
+    { id:'rainy',   icon:'🌧',  label:'Rainy',
+      desc:'Water flows through the shape — cool, fluid, washing clean',
+      cA:[0.15,0.50,0.78], cB:[0.08,0.28,0.55], cC:[0.50,0.78,0.95],
+      turbulence:0.38, speed:0.48, orbitSpeed:0.38, orbitRadius:0.10 },
+    { id:'stormy',  icon:'⛈',   label:'Stormy',
+      desc:'Chaos fractures the orb — violent, electric, unstoppable',
+      cA:[0.38,0.10,0.92], cB:[0.10,0.25,0.88], cC:[0.78,0.85,1.00],
+      turbulence:0.95, speed:1.50, orbitSpeed:1.25, orbitRadius:0.18 },
+    { id:'foggy',   icon:'🌫',   label:'Foggy',
+      desc:'Edges dissolve into silence — soft, diffuse, uncertain',
+      cA:[0.75,0.80,0.88], cB:[0.55,0.60,0.70], cC:[0.92,0.94,0.98],
+      turbulence:0.42, speed:0.12, orbitSpeed:0.08, orbitRadius:0.12 },
+    { id:'snowy',   icon:'❄️',  label:'Snowy',
+      desc:'Crystalline and sharp — cold light refracts in every direction',
+      cA:[0.68,0.86,1.00], cB:[0.38,0.62,0.90], cC:[0.95,0.97,1.00],
+      turbulence:0.20, speed:0.28, orbitSpeed:0.18, orbitRadius:0.06 },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────
+// WEBGL INIT
+// ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('gl');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+if (!gl) {
+  document.body.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh';
+  document.body.innerHTML = '<p style="color:rgba(255,255,255,.4);font-family:sans-serif">WebGL unavailable in this browser.</p>';
+  throw new Error('No WebGL');
+}
+
+// ── Vertex shader ────────────────────────────────────────────
+const VERT = `
+  attribute vec2 a_pos;
+  void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+`;
+
+// ── Fragment shader ──────────────────────────────────────────
+const FRAG = `
+precision highp float;
+
+uniform float u_time;
+uniform vec2  u_res;
+uniform vec3  u_cA, u_cB, u_cC;
+uniform float u_turb, u_spd, u_oSpd, u_oRad;
+
+/* ── Noise utilities ── */
+float h21(vec2 p) {
+  p = fract(p * vec2(127.1, 311.7));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float vn(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(h21(i),           h21(i + vec2(1,0)), f.x),
+    mix(h21(i + vec2(0,1)), h21(i + vec2(1,1)), f.x),
+    f.y);
+}
+
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  mat2 R = mat2(1.6, 1.2, -1.2, 1.6); /* rotate+scale 2× */
+  for (int i = 0; i < 4; i++) { v += a * vn(p); p = R * p; a *= 0.5; }
+  return v;
+}
+
+/* Smooth union for metaball blending */
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5*(b - a)/k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+void main() {
+  /* ── Coordinates ── */
+  vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / min(u_res.x, u_res.y);
+  uv.y -= 0.06; /* push orb slightly above viewport centre */
+
+  float t = u_time;
+
+  /* ── Star field (three density layers) ── */
+  float stars = 0.0;
+  {
+    vec2 p = uv * 72.0;
+    vec2 cl = floor(p); vec2 f = fract(p) - 0.5;
+    float r = h21(cl);
+    if (r > 0.974)
+      stars += (0.7 + 0.3*sin(t*1.9 + r*29.3)) * (r-0.974)/0.026
+               * (1.0 - smoothstep(0.0, 0.38, length(f)));
+  }
+  {
+    vec2 p = uv * 132.0 + vec2(5.5, 3.3);
+    vec2 cl = floor(p); vec2 f = fract(p) - 0.5;
+    float r = h21(cl + vec2(7.3, 2.1));
+    if (r > 0.979)
+      stars += (0.5 + 0.5*sin(t*1.3 + r*20.1)) * (r-0.979)/0.021 * 0.6
+               * (1.0 - smoothstep(0.0, 0.30, length(f)));
+  }
+  {
+    vec2 p = uv * 205.0 + vec2(11.2, 8.7);
+    vec2 cl = floor(p); vec2 f = fract(p) - 0.5;
+    float r = h21(cl + vec2(3.6, 9.4));
+    if (r > 0.985)
+      stars += (0.4 + 0.6*sin(t*2.6 + r*43.1)) * (r-0.985)/0.015 * 0.35
+               * (1.0 - smoothstep(0.0, 0.24, length(f)));
+  }
+
+  /* ── Domain warp (organic distortion) ── */
+  float ws = u_turb * 0.44;
+  vec2 q = vec2(
+    fbm(uv * 1.6 + t * u_spd * 0.14),
+    fbm(uv * 1.6 + vec2(1.72, 9.24) + t * u_spd * 0.14)
+  );
+  vec2 w = uv + ws * (q * 2.0 - 1.0);
+
+  /* ── Metaball SDF: central blob + 5 orbiting blobs ── */
+  float d = length(w) - 0.27;
+  float os = t * u_oSpd;
+  for (int i = 0; i < 5; i++) {
+    float fi    = float(i);
+    float ang   = os + fi * 1.25664; /* 2π/5 */
+    float vari  = 0.82 + 0.18 * sin(fi * 2.71 + os * 0.33);
+    vec2  bp    = vec2(cos(ang), sin(ang)) * u_oRad * vari;
+    float bs    = 0.12 + 0.025 * sin(fi * 3.14 + os * 0.45);
+    d = smin(d, length(w - bp) - bs, 0.10 + u_turb * 0.07);
+  }
+
+  /* ── Interior colour mixing ── */
+  float c1 = fbm(w * 3.0 + t * u_spd * 0.32);
+  float c2 = fbm(w * 5.2 - t * u_spd * 0.26 + vec2(3.13, 1.73));
+
+  vec3 bc = mix(u_cA, u_cB, smoothstep(0.25, 0.75, c1));
+  bc      = mix(bc,   u_cC, c2 * 0.55);
+
+  /* Radiant centre */
+  bc += mix(u_cC, vec3(1.0), 0.45) * exp(-length(w) * 5.5) * 0.50;
+
+  /* Specular glint (off-centre highlight) */
+  bc = mix(bc, vec3(1.0), exp(-length(w - vec2(-0.07, 0.10)) * 17.0) * 0.30);
+
+  /* Rim darkening */
+  bc *= 1.0 - smoothstep(-0.13, 0.01, d) * 0.50;
+
+  /* ── Background ── */
+  vec3 bg = vec3(0.019, 0.019, 0.050);
+
+  /* Glow halos at three radii */
+  float g1 = exp(-max(d, 0.0) * 7.5);
+  float g2 = exp(-max(d, 0.0) * 2.8);
+  float g3 = exp(-max(d, 0.0) * 0.85);
+  bg += u_cA * g1 * 0.36;
+  bg += u_cB * g2 * 0.18;
+  bg += u_cA * g3 * 0.09;
+
+  /* Ambient tint toward centre */
+  bg += u_cB * exp(-length(uv) * 1.8) * 0.045;
+
+  /* Stars fade near orb */
+  bg += stars * vec3(0.82, 0.87, 1.0) * (1.0 - smoothstep(0.3, 0.0, -d) * 0.65);
+
+  /* ── Composite blob over background ── */
+  float mask = 1.0 - smoothstep(-0.012, 0.012, d);
+  vec3 col   = mix(bg, bc, mask);
+
+  /* Vignette */
+  col *= 0.20 + 0.80 * (1.0 - smoothstep(0.60, 1.40, length(uv + vec2(0.0, 0.06))));
+
+  /* sRGB gamma */
+  col = pow(max(col, 0.0), vec3(0.4545));
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}
+`;
+
+function mkShader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+    console.error('Shader compile error:', gl.getShaderInfoLog(s));
+  return s;
+}
+
+const prog = gl.createProgram();
+gl.attachShader(prog, mkShader(gl.VERTEX_SHADER,   VERT));
+gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FRAG));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+  console.error('Program link error:', gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+
+/* Fullscreen quad (triangle strip) */
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const aPos = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(aPos);
+gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+/* Uniform locations */
+const U = {};
+['u_time','u_res','u_cA','u_cB','u_cC','u_turb','u_spd','u_oSpd','u_oRad']
+  .forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
+
+/* Resize to device pixel ratio */
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = window.innerWidth  * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width  = window.innerWidth  + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ─────────────────────────────────────────────────────────────
+// TRANSITION ENGINE
+// ─────────────────────────────────────────────────────────────
+const lerp  = (a, b, t) => a + (b - a) * t;
+const lerpV = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
+const ease  = t => t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t;
+
+const initS = MODES.mood[0];
+let cur = initS;
+
+let un = {
+  cA:[...initS.cA], cB:[...initS.cB], cC:[...initS.cC],
+  turb:initS.turbulence, spd:initS.speed, oSpd:initS.orbitSpeed, oRad:initS.orbitRadius,
+};
+let ufrom = { ...un, cA:[...un.cA], cB:[...un.cB], cC:[...un.cC] };
+let uto   = { ...un, cA:[...un.cA], cB:[...un.cB], cC:[...un.cC] };
+let tS = -1;
+const TDUR = 900; /* ms */
+
+function setCSSColor(c) {
+  const r = Math.round(c[0]*255), g = Math.round(c[1]*255), b = Math.round(c[2]*255);
+  document.documentElement.style.setProperty('--oc', `${r},${g},${b}`);
+}
+
+function setState(state, force) {
+  if (!force && state.id === cur.id) return;
+  ufrom = { ...un, cA:[...un.cA], cB:[...un.cB], cC:[...un.cC] };
+  uto   = { cA:[...state.cA], cB:[...state.cB], cC:[...state.cC],
+             turb:state.turbulence, spd:state.speed, oSpd:state.orbitSpeed, oRad:state.orbitRadius };
+  cur   = state;
+  tS    = performance.now();
+  document.getElementById('stateName').textContent = state.label;
+  document.getElementById('stateDesc').textContent = state.desc;
+  document.querySelectorAll('.pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.id === state.id));
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER LOOP
+// ─────────────────────────────────────────────────────────────
+const T0 = performance.now();
+
+(function loop(now) {
+  requestAnimationFrame(loop);
+
+  /* Interpolate uniform values toward target */
+  if (tS >= 0) {
+    const p = Math.min((now - tS) / TDUR, 1.0);
+    const e = ease(p);
+    un.cA   = lerpV(ufrom.cA,   uto.cA,   e);
+    un.cB   = lerpV(ufrom.cB,   uto.cB,   e);
+    un.cC   = lerpV(ufrom.cC,   uto.cC,   e);
+    un.turb = lerp(ufrom.turb, uto.turb, e);
+    un.spd  = lerp(ufrom.spd,  uto.spd,  e);
+    un.oSpd = lerp(ufrom.oSpd, uto.oSpd, e);
+    un.oRad = lerp(ufrom.oRad, uto.oRad, e);
+    setCSSColor(un.cA);
+    if (p >= 1.0) tS = -1;
+  }
+
+  const t = (now - T0) / 1000;
+  gl.uniform1f(U.u_time, t);
+  gl.uniform2f(U.u_res,  canvas.width, canvas.height);
+  gl.uniform3fv(U.u_cA,  un.cA);
+  gl.uniform3fv(U.u_cB,  un.cB);
+  gl.uniform3fv(U.u_cC,  un.cC);
+  gl.uniform1f(U.u_turb, un.turb);
+  gl.uniform1f(U.u_spd,  un.spd);
+  gl.uniform1f(U.u_oSpd, un.oSpd);
+  gl.uniform1f(U.u_oRad, un.oRad);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+})(T0);
+
+// ─────────────────────────────────────────────────────────────
+// UI
+// ─────────────────────────────────────────────────────────────
+let activeMode = 'mood';
+
+function buildPills(mode) {
+  const el = document.getElementById('pillsEl');
+  el.classList.add('fading');
+  setTimeout(() => {
+    el.innerHTML = '';
+    MODES[mode].forEach(state => {
+      const btn = document.createElement('button');
+      btn.className = 'pill' + (state.id === cur.id ? ' active' : '');
+      btn.dataset.id = state.id;
+      btn.innerHTML  = `<span class="pill-icon">${state.icon}</span>${state.label}`;
+      btn.addEventListener('click', () => setState(state));
+      el.appendChild(btn);
+    });
+    el.classList.remove('fading');
+  }, 215);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.mode === activeMode) return;
+    activeMode = tab.dataset.mode;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+    cur = { id: '__none__' }; /* bypass guard so first state always triggers */
+    const first = MODES[activeMode][0];
+    setState(first, true);
+    buildPills(activeMode);
+  });
+});
+
+/* Bootstrap */
+document.getElementById('stateName').textContent = initS.label;
+document.getElementById('stateDesc').textContent = initS.desc;
+setCSSColor(initS.cA);
+buildPills('mood');
+</script>
+</body>
+</html>
