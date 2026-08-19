@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARCHIVE_SYS // SIGNAL FEED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&family=Outfit:wght@300;400;500;600&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #060608;
+      --green: #00ff41;
+      --cyan: #00e5ff;
+      --magenta: #ff006e;
+      --text: #dddde8;
+      --muted: #55556a;
+    }
+
+    html { scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* CRT vignette */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,0.75) 100%);
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    /* Global scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 199;
+    }
+
+    /* ───── HEADER ───── */
+
+    .header {
+      padding: 36px 60px 28px;
+      border-bottom: 1px solid rgba(0,255,65,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(6,6,8,0.92);
+      backdrop-filter: blur(8px);
+    }
+
+    .logo {
+      font-family: 'VT323', monospace;
+      font-size: 2rem;
+      color: var(--green);
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 18px rgba(0,255,65,0.45), 0 0 40px rgba(0,255,65,0.15);
+    }
+
+    .logo em {
+      color: var(--muted);
+      font-style: normal;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: 'VT323', monospace;
+      font-size: 1.05rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .blink-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: blink 1.3s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.1; }
+    }
+
+    /* ───── CONTAINER ───── */
+
+    .container {
+      padding: 56px 60px 80px;
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    .section-title {
+      font-family: 'VT323', monospace;
+      font-size: 3rem;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .section-count {
+      font-family: 'VT323', monospace;
+      font-size: 1.3rem;
+      color: var(--muted);
+    }
+
+    /* ───── CARD GRID ───── */
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* ───── CARD ───── */
+
+    .card {
+      position: relative;
+      aspect-ratio: 2 / 3;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: #0c0c10;
+    }
+
+    /* Base image */
+    .card-img {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: saturate(0.65) brightness(0.55);
+      transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94),
+                  filter 0.3s ease;
+      will-change: transform;
+    }
+
+    /* Red channel clone */
+    .g-r {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: saturate(0) sepia(1) hue-rotate(-30deg) saturate(6) brightness(0.9);
+      mix-blend-mode: screen;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      will-change: transform, clip-path, opacity;
+    }
+
+    /* Blue channel clone */
+    .g-b {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: saturate(0) sepia(1) hue-rotate(195deg) saturate(5) brightness(0.9);
+      mix-blend-mode: screen;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      will-change: transform, clip-path, opacity;
+    }
+
+    /* Scanlines intensifier */
+    .g-scan {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.55) 2px,
+        rgba(0,0,0,0.55) 4px
+      );
+    }
+
+    /* Tracking noise bar */
+    .g-bar {
+      position: absolute;
+      left: -4px; right: -4px;
+      height: 5px;
+      top: 50%;
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(0,255,65,0.5) 15%,
+        rgba(0,229,255,0.7) 50%,
+        rgba(255,0,110,0.5) 85%,
+        transparent
+      );
+      filter: blur(1.5px);
+    }
+
+    /* Secondary tracking bar (white) */
+    .g-bar2 {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      top: 30%;
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+      background: rgba(255,255,255,0.6);
+      filter: blur(0.5px);
+    }
+
+    /* Gradient overlay for text readability */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        transparent 25%,
+        rgba(6,6,8,0.45) 55%,
+        rgba(6,6,8,0.92) 85%,
+        rgba(6,6,8,0.98) 100%
+      );
+      z-index: 6;
+    }
+
+    /* Card content */
+    .card-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 24px 22px;
+      z-index: 7;
+    }
+
+    .card-tag {
+      font-family: 'VT323', monospace;
+      font-size: 0.9rem;
+      letter-spacing: 0.18em;
+      color: var(--accent-color, var(--green));
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-shadow: 0 0 10px currentColor;
+      transition: transform 0.15s;
+    }
+
+    .card-tag::before {
+      content: '▶';
+      font-size: 0.65em;
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-size: 1.22rem;
+      font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+      transition: transform 0.15s;
+    }
+
+    .card-meta {
+      font-family: 'VT323', monospace;
+      font-size: 0.88rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* VHS status label (top-left) */
+    .vhs-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      color: var(--accent-color, var(--green));
+      z-index: 8;
+      opacity: 0;
+      text-shadow: 0 0 12px currentColor;
+      pointer-events: none;
+    }
+
+    /* Timecode (top-right) */
+    .vhs-time {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-family: 'VT323', monospace;
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      z-index: 8;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ───── HOVER / IS-GLITCHING STATE ───── */
+
+    .card.is-glitching .card-img {
+      animation: img-warp var(--gs, 0.35s) steps(2) infinite;
+    }
+
+    .card.is-glitching .g-r {
+      opacity: 1;
+      animation: slice-r var(--gs, 0.35s) steps(1) infinite;
+    }
+
+    .card.is-glitching .g-b {
+      opacity: 1;
+      animation: slice-b var(--gs, 0.35s) steps(1) infinite 0.07s;
+    }
+
+    .card.is-glitching .g-scan {
+      opacity: 1;
+      animation: scan-pulse 0.18s steps(1) infinite;
+    }
+
+    .card.is-glitching .g-bar {
+      opacity: 1;
+      animation: bar-move var(--gs, 0.35s) steps(1) infinite 0.04s;
+    }
+
+    .card.is-glitching .g-bar2 {
+      opacity: 1;
+      animation: bar2-move calc(var(--gs, 0.35s) * 0.7) steps(1) infinite 0.11s;
+    }
+
+    .card.is-glitching .vhs-label,
+    .card.is-glitching .vhs-time {
+      opacity: 1;
+    }
+
+    .card.is-glitching .card-content {
+      animation: content-jitter var(--gs, 0.35s) steps(1) infinite;
+    }
+
+    /* ───── GLITCH KEYFRAMES ───── */
+
+    @keyframes slice-r {
+      0%   { clip-path: inset(5% 0 88% 0);  transform: translateX(-7px); }
+      10%  { clip-path: inset(42% 0 44% 0); transform: translateX(9px); }
+      20%  { clip-path: inset(72% 0 18% 0); transform: translateX(-5px); }
+      30%  { clip-path: inset(18% 0 70% 0); transform: translateX(11px); }
+      40%  { clip-path: inset(87% 0 4% 0);  transform: translateX(-9px); }
+      50%  { clip-path: inset(31% 0 57% 0); transform: translateX(6px); }
+      60%  { clip-path: inset(58% 0 33% 0); transform: translateX(-4px); }
+      70%  { clip-path: inset(8% 0 82% 0);  transform: translateX(12px); }
+      80%  { clip-path: inset(76% 0 14% 0); transform: translateX(-8px); }
+      90%  { clip-path: inset(50% 0 40% 0); transform: translateX(4px); }
+      100% { clip-path: inset(5% 0 88% 0);  transform: translateX(-7px); }
+    }
+
+    @keyframes slice-b {
+      0%   { clip-path: inset(52% 0 36% 0); transform: translateX(7px); }
+      14%  { clip-path: inset(11% 0 79% 0); transform: translateX(-9px); }
+      28%  { clip-path: inset(79% 0 9% 0);  transform: translateX(5px); }
+      42%  { clip-path: inset(23% 0 63% 0); transform: translateX(-6px); }
+      57%  { clip-path: inset(64% 0 26% 0); transform: translateX(10px); }
+      71%  { clip-path: inset(4% 0 86% 0);  transform: translateX(-7px); }
+      85%  { clip-path: inset(37% 0 51% 0); transform: translateX(8px); }
+      100% { clip-path: inset(52% 0 36% 0); transform: translateX(7px); }
+    }
+
+    @keyframes img-warp {
+      0%,100% { transform: scale(1.04) skewX(0deg) translateX(0); filter: saturate(0.65) brightness(0.55); }
+      25%     { transform: scale(1.04) skewX(0.4deg) translateX(-3px); filter: saturate(0.8) brightness(0.45); }
+      75%     { transform: scale(1.04) skewX(-0.3deg) translateX(3px); filter: saturate(0.8) brightness(0.45); }
+    }
+
+    @keyframes bar-move {
+      0%  { top: 82%; height: 4px; opacity: 0.9; }
+      17% { top: 18%; height: 7px; opacity: 1; }
+      33% { top: 55%; height: 3px; opacity: 0.7; }
+      50% { top: 37%; height: 9px; opacity: 1; }
+      67% { top: 70%; height: 4px; opacity: 0.8; }
+      83% { top: 10%; height: 5px; opacity: 0.9; }
+      100%{ top: 65%; height: 3px; opacity: 0.6; }
+    }
+
+    @keyframes bar2-move {
+      0%  { top: 28%; opacity: 0.7; }
+      33% { top: 61%; opacity: 0.5; }
+      67% { top: 44%; opacity: 0.8; }
+      100%{ top: 12%; opacity: 0.6; }
+    }
+
+    @keyframes scan-pulse {
+      0%,100% { opacity: 0.85; }
+      50%     { opacity: 0.45; }
+    }
+
+    @keyframes content-jitter {
+      0%,100% { transform: translateX(0); }
+      30%     { transform: translateX(-2px); }
+      65%     { transform: translateX(1px); }
+    }
+
+    /* ───── FOOTER ───── */
+
+    .footer {
+      margin-top: 0;
+      padding: 28px 60px;
+      border-top: 1px solid rgba(0,255,65,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'VT323', monospace;
+      font-size: 0.95rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .footer span:last-child {
+      animation: footer-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes footer-pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; color: var(--green); }
+    }
+
+    /* ───── RESPONSIVE ───── */
+
+    @media (max-width: 1000px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 40px 32px 60px; }
+      .header, .footer { padding-left: 32px; padding-right: 32px; }
+    }
+
+    @media (max-width: 600px) {
+      .card-grid { grid-template-columns: 1fr; }
+      .container { padding: 28px 20px 48px; }
+      .header { padding: 24px 20px 20px; }
+      .footer { padding: 20px; flex-direction: column; gap: 8px; text-align: center; }
+      .section-title { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="logo">ARCHIVE_SYS <em>// SIGNAL FEED</em></div>
+    <div class="status">
+      <div class="blink-dot"></div>
+      <span>LIVE</span>
+      <span>CH.08</span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="section-head">
+      <h1 class="section-title">RECOVERED TRANSMISSIONS</h1>
+      <span class="section-count">[06 FILES]</span>
+    </div>
+    <div class="card-grid" id="cardGrid"></div>
+  </main>
+
+  <footer class="footer">
+    <span>SYS_REV 2.4.1 // VHS ARCHIVE PROTOCOL</span>
+    <span>HOVER TO DECODE SIGNAL ▶</span>
+  </footer>
+
+  <script>
+    // ── Live clock
+    const clockEl = document.getElementById('clock');
+    function tick() {
+      const t = new Date();
+      clockEl.textContent = t.toTimeString().slice(0, 8);
+    }
+    setInterval(tick, 1000);
+    tick();
+
+    // ── Card data
+    const cards = [
+      {
+        img: 'https://images.unsplash.com/photo-1514565131-fce0801e6173?w=600&h=900&fit=crop&auto=format',
+        tag: 'CHANNEL 04',
+        title: 'Urban Grid Surveillance',
+        meta: '23:47:12 • LIVE • 1080i',
+        vhsLabel: 'REC ●',
+        time: '0:00:47',
+        color: '#00ff41'
+      },
+      {
+        img: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=900&fit=crop&auto=format',
+        tag: 'AUDIO FEED',
+        title: 'Echo Chamber Protocol',
+        meta: '01:23:44 • ARCHIVE • TAPE 07',
+        vhsLabel: '▶ PLAY',
+        time: '1:23:44',
+        color: '#00e5ff'
+      },
+      {
+        img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=600&h=900&fit=crop&auto=format',
+        tag: 'CLASSIFIED',
+        title: 'Sector Seven Incident',
+        meta: '00:00:00 • RESTRICTED • EYES ONLY',
+        vhsLabel: '⊘ LOCKED',
+        time: '0:00:00',
+        color: '#ff006e'
+      },
+      {
+        img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=900&fit=crop&auto=format',
+        tag: 'ARCHIVE',
+        title: 'Memory Bleed Session',
+        meta: '14:08:33 • RECOVERED • SP MODE',
+        vhsLabel: '◀◀ REWIND',
+        time: '14:08:33',
+        color: '#a855f7'
+      },
+      {
+        img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=900&fit=crop&auto=format',
+        tag: 'BROADCAST',
+        title: 'Signal Lost in Transit',
+        meta: '08:52:17 • DEGRADED • NO SYNC',
+        vhsLabel: '⁻ TRACKING',
+        time: '8:52:17',
+        color: '#f59e0b'
+      },
+      {
+        img: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=900&fit=crop&auto=format',
+        tag: 'LIVE FEED',
+        title: 'Last Known Broadcast',
+        meta: '11:59:59 • FINAL • END OF TAPE',
+        vhsLabel: '■ STOP',
+        time: '11:59:59',
+        color: '#ef4444'
+      }
+    ];
+
+    // Labels that cycle during glitch
+    const glitchLabels = ['NO SIGNAL', 'TRACKING...', '/////', 'ERR_04', 'SEEK', '▒▒▒▒▒'];
+
+    // ── Build cards
+    const grid = document.getElementById('cardGrid');
+
+    cards.forEach((data) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--accent-color', data.color);
+
+      card.innerHTML = `
+        <div class="card-img" style="background-image:url('${data.img}')"></div>
+        <div class="g-r" style="background-image:url('${data.img}')"></div>
+        <div class="g-b" style="background-image:url('${data.img}')"></div>
+        <div class="g-scan"></div>
+        <div class="g-bar"></div>
+        <div class="g-bar2"></div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <span class="card-tag">${data.tag}</span>
+          <h2 class="card-title">${data.title}</h2>
+          <p class="card-meta">${data.meta}</p>
+        </div>
+        <div class="vhs-label">${data.vhsLabel}</div>
+        <div class="vhs-time">${data.time}</div>
+      `;
+
+      grid.appendChild(card);
+
+      // ── Hover: start glitch
+      const labelEl = card.querySelector('.vhs-label');
+      let labelInterval = null;
+
+      card.addEventListener('mouseenter', () => {
+        // Randomise speed slightly per hover
+        const speed = (0.22 + Math.random() * 0.28).toFixed(3);
+        card.style.setProperty('--gs', speed + 's');
+        card.classList.add('is-glitching');
+
+        // Cycle VHS label text for distortion effect
+        let li = 0;
+        const labels = [...glitchLabels, data.vhsLabel];
+        labelInterval = setInterval(() => {
+          labelEl.textContent = labels[li % labels.length];
+          li++;
+        }, 110);
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.classList.remove('is-glitching');
+        clearInterval(labelInterval);
+        labelEl.textContent = data.vhsLabel;
+      });
+    });
+  </script>
+</body>
+</html>
