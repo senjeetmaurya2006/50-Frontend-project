@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>404 - Look like you're lost</title>
+<style>
+  :root{
+    --skin:#f6b990;
+    --skin-dark:#e8a377;
+    --hair:#4a2a12;
+    --loin:#eb9421;
+    --loin-dark:#d97f0d;
+    --stone:#dcdcda;
+    --stone-dark:#cfcfcd;
+    --bush:#37ab3a;
+    --bush-dark:#2c8f2f;
+    --ink:#33383d;
+    --sub:#8a8f94;
+    --green:#4caf50;
+    --green-dark:#3e9142;
+    --card:#f9fbf8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    height:100%;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Segoe UI',Arial,Helvetica,sans-serif;
+  }
+  .card{
+    width:440px;
+    max-width:92vw;
+    background:var(--card);
+    border-radius:26px;
+    padding:34px 30px 40px;
+    text-align:center;
+    box-shadow:0 25px 70px rgba(0,0,0,.55);
+  }
+  .card h1{
+    margin:0 0 6px;
+    font-family:Georgia,'Times New Roman',serif;
+    font-weight:700;
+    font-size:56px;
+    color:var(--ink);
+    letter-spacing:2px;
+    position:relative;
+    transition:text-shadow .25s ease, color .25s ease;
+  }
+  .card h1.zap{
+    color:#e0a400;
+    text-shadow:0 0 10px #ffd54a,0 0 26px #ffea8a,0 0 44px #ffd54a;
+    animation:titleShake .12s linear infinite;
+  }
+  @keyframes titleShake{
+    0%{transform:translate(0,0);}
+    25%{transform:translate(-1px,1px);}
+    50%{transform:translate(1px,-1px);}
+    75%{transform:translate(-1px,-1px);}
+    100%{transform:translate(0,0);}
+  }
+  .scene-wrap{
+    width:100%;
+    height:190px;
+    margin:2px 0 18px;
+  }
+  .scene-wrap svg{width:100%;height:100%;display:block;}
+  h2{
+    margin:0 0 6px;
+    color:var(--ink);
+    font-size:23px;
+    font-weight:700;
+  }
+  p.sub{
+    margin:0 0 20px;
+    color:var(--sub);
+    font-size:12.5px;
+  }
+  button.home{
+    background:var(--green);
+    color:#fff;
+    border:none;
+    padding:11px 26px;
+    font-size:14px;
+    font-weight:600;
+    border-radius:6px;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+  }
+  button.home:hover{background:var(--green-dark);transform:translateY(-1px);}
+  button.home:active{transform:translateY(0);}
+
+  /* ---------- pose groups ---------- */
+  #idle-pose,#shock-pose,#sit-pose{
+    opacity:0;
+    transition:opacity .18s ease;
+  }
+  #idle-pose{transform-origin:200px 205px;}
+  #shock-pose{transform-origin:200px 175px;}
+  #sit-pose{transform-origin:200px 205px;}
+
+  .scene.idle #idle-pose{opacity:1;animation:idleBob 1.1s ease-in-out infinite;}
+  .scene.spark #idle-pose{opacity:1;}
+  .scene.shock #shock-pose{opacity:1;animation:shockShake .09s linear infinite;}
+  .scene.fall #shock-pose{opacity:1;animation:none;}
+  .scene.sit #sit-pose{opacity:1;animation:sitSettle .4s ease-out;}
+
+  @keyframes idleBob{
+    0%,100%{transform:translateY(0) rotate(0deg);}
+    50%{transform:translateY(3px) rotate(1deg);}
+  }
+  @keyframes shockShake{
+    0%{transform:translate(0,0);}
+    25%{transform:translate(-2px,1px);}
+    50%{transform:translate(2px,-2px);}
+    75%{transform:translate(-2px,-1px);}
+    100%{transform:translate(0,0);}
+  }
+  @keyframes sitSettle{
+    0%{transform:translateY(-14px) scale(.96);opacity:.4;}
+    100%{transform:translateY(0) scale(1);opacity:1;}
+  }
+
+  .fall #shock-pose{
+    animation:fallDown .5s cubic-bezier(.45,0,.8,.6) forwards;
+  }
+  @keyframes fallDown{
+    0%{transform:translate(0,-6px) rotate(0deg);}
+    100%{transform:translate(0,42px) rotate(8deg);}
+  }
+
+  #glow-burst{opacity:0;}
+  .scene.shock #glow-burst{opacity:1;animation:burstPulse .35s ease-in-out infinite;}
+  .scene.fall #glow-burst{opacity:0;transition:opacity .3s ease;}
+  @keyframes burstPulse{
+    0%,100%{opacity:.55;transform:scale(1);}
+    50%{opacity:1;transform:scale(1.08);}
+  }
+
+  #spark-mark{opacity:0;}
+  .scene.spark #spark-mark{opacity:1;animation:sparkFlicker .1s linear infinite;}
+  @keyframes sparkFlicker{
+    0%,100%{opacity:1;}
+    50%{opacity:.3;}
+  }
+
+  #skeleton{opacity:0;}
+  .scene.shock #skeleton{opacity:.55;}
+
+  /* wire variants */
+  #wire-idle,#wire-loose,#wire-taut{opacity:0;transition:opacity .25s ease;}
+  .scene.idle #wire-idle,.scene.spark #wire-idle{opacity:1;}
+  .scene.shock #wire-loose,.scene.fall #wire-loose{opacity:1;}
+  .scene.sit #wire-taut{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1 id="title">404</h1>
+
+  <div class="scene-wrap">
+    <svg id="scene" class="scene idle" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- ground line -->
+      <line x1="15" y1="207" x2="385" y2="207" stroke="#e7e7e4" stroke-width="2"/>
+
+      <!-- left inukshuk -->
+      <g>
+        <path d="M45 207 L52 158 L74 158 L81 207 Z" fill="var(--stone)"/>
+        <rect x="40" y="140" width="46" height="15" rx="7" fill="var(--stone)"/>
+        <circle cx="63" cy="122" r="13" fill="var(--stone)"/>
+      </g>
+
+      <!-- right rock -->
+      <path d="M305 207 C303 150 312 95 340 88 C368 95 377 150 375 207 Z" fill="var(--stone-dark)"/>
+
+      <!-- bushes -->
+      <g fill="var(--bush)">
+        <ellipse cx="30" cy="203" rx="17" ry="11"/>
+        <ellipse cx="15" cy="207" rx="12" ry="8" fill="var(--bush-dark)"/>
+        <ellipse cx="103" cy="204" rx="14" ry="9"/>
+        <ellipse cx="290" cy="204" rx="13" ry="9"/>
+        <ellipse cx="386" cy="203" rx="16" ry="10"/>
+      </g>
+
+      <!-- ===== WIRES ===== -->
+      <path id="wire-idle" d="M63 207 Q120 207 150 207 Q170 207 172 190 Q174 172 197 152 Q186 175 200 200 Q216 178 205 152 Q222 172 228 190 Q234 207 260 207 Q300 207 340 207"
+            fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>
+
+      <path id="wire-loose" d="M63 207 Q110 207 140 207 Q160 207 175 195 Q192 183 197 172 Q170 176 165 195 Q178 210 205 200 Q224 192 240 175 Q248 165 250 155"
+            fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>
+
+      <path id="wire-taut" d="M63 207 L340 207" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- ===== IDLE POSE ===== -->
+      <g id="idle-pose">
+        <!-- legs -->
+        <line x1="196" y1="176" x2="188" y2="207" stroke="var(--skin)" stroke-width="10" stroke-linecap="round"/>
+        <line x1="204" y1="176" x2="213" y2="207" stroke="var(--skin)" stroke-width="10" stroke-linecap="round"/>
+        <!-- back arm -->
+        <line x1="212" y1="148" x2="226" y2="170" stroke="var(--skin)" stroke-width="8" stroke-linecap="round"/>
+        <!-- torso / loincloth -->
+        <path d="M186 138 Q200 128 214 138 L219 178 Q200 190 181 178 Z" fill="var(--loin)"/>
+        <circle cx="193" cy="155" r="2.4" fill="var(--loin-dark)"/>
+        <circle cx="205" cy="165" r="2.4" fill="var(--loin-dark)"/>
+        <circle cx="197" cy="172" r="2" fill="var(--loin-dark)"/>
+        <!-- front arm holding wire -->
+        <path d="M188 145 Q178 132 192 122" fill="none" stroke="var(--skin)" stroke-width="8" stroke-linecap="round"/>
+        <!-- head -->
+        <circle cx="199" cy="115" r="17" fill="var(--skin)"/>
+        <!-- ears -->
+        <circle cx="183" cy="116" r="4" fill="var(--skin)"/>
+        <circle cx="215" cy="116" r="4" fill="var(--skin)"/>
+        <!-- hair -->
+        <path d="M181 108 Q184 90 199 89 Q214 90 217 108 Q210 100 199 100 Q188 100 181 108 Z" fill="var(--hair)"/>
+        <!-- beard -->
+        <path d="M184 113 Q182 134 199 138 Q216 134 214 113 Q214 128 199 130 Q184 128 184 113 Z" fill="var(--hair)"/>
+        <!-- cheek -->
+        <circle cx="188" cy="118" r="3.2" fill="#f29a8e" opacity=".8"/>
+        <!-- eye -->
+        <path d="M191 110 q3 -2 6 0" stroke="#33251a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- mouth holding wire end -->
+        <circle cx="205" cy="118" r="2.3" fill="#33251a"/>
+      </g>
+
+      <!-- ===== SHOCK / FALL POSE ===== -->
+      <g id="shock-pose">
+        <g id="glow-burst">
+          <circle cx="200" cy="175" r="46" fill="#ffe27a" opacity=".45"/>
+          <circle cx="200" cy="175" r="30" fill="#fff3b0" opacity=".55"/>
+          <g stroke="#ffce3a" stroke-width="2.5" stroke-linecap="round" opacity=".9">
+            <line x1="200" y1="120" x2="200" y2="105"/>
+            <line x1="160" y1="140" x2="148" y2="128"/>
+            <line x1="240" y1="140" x2="252" y2="128"/>
+            <line x1="150" y1="180" x2="134" y2="180"/>
+            <line x1="250" y1="180" x2="266" y2="180"/>
+            <line x1="165" y1="215" x2="155" y2="228"/>
+            <line x1="235" y1="215" x2="245" y2="228"/>
+          </g>
+        </g>
+
+        <!-- legs splayed -->
+        <line x1="200" y1="170" x2="168" y2="205" stroke="var(--skin)" stroke-width="10" stroke-linecap="round"/>
+        <line x1="200" y1="170" x2="232" y2="205" stroke="var(--skin)" stroke-width="10" stroke-linecap="round"/>
+        <!-- arms splayed -->
+        <line x1="200" y1="150" x2="160" y2="130" stroke="var(--skin)" stroke-width="8" stroke-linecap="round"/>
+        <line x1="200" y1="150" x2="240" y2="130" stroke="var(--skin)" stroke-width="8" stroke-linecap="round"/>
+        <!-- torso -->
+        <path d="M184 140 Q200 130 216 140 L214 172 Q200 180 186 172 Z" fill="var(--loin)"/>
+
+        <!-- x-ray skeleton overlay -->
+        <g id="skeleton" stroke="#7a4a2e" stroke-width="1.6" fill="none">
+          <line x1="200" y1="140" x2="200" y2="172"/>
+          <path d="M191 148 Q200 152 209 148"/>
+          <path d="M190 156 Q200 160 210 156"/>
+          <path d="M191 164 Q200 168 209 164"/>
+        </g>
+
+        <!-- head -->
+        <circle cx="200" cy="118" r="17" fill="var(--skin)"/>
+        <circle cx="184" cy="119" r="4" fill="var(--skin)"/>
+        <circle cx="216" cy="119" r="4" fill="var(--skin)"/>
+        <!-- hair standing up -->
+        <path d="M182 110 Q178 88 190 82 Q186 96 191 100 M199 108 Q199 82 199 78 Q199 92 202 100 M217 110 Q222 88 210 82 Q214 96 209 100"
+              stroke="var(--hair)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M185 116 Q183 137 200 141 Q217 137 215 116 Q215 131 200 133 Q185 131 185 116 Z" fill="var(--hair)"/>
+        <!-- shocked eyes -->
+        <path d="M189 112 L195 116 M195 112 L189 116" stroke="#33251a" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M205 112 L211 116 M211 112 L205 116" stroke="#33251a" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse cx="200" cy="124" rx="3" ry="4" fill="#33251a"/>
+      </g>
+
+      <!-- ===== SIT / DAZED POSE ===== -->
+      <g id="sit-pose">
+        <!-- legs crossed sitting -->
+        <path d="M182 207 Q182 188 200 188 Q218 188 218 207" fill="none" stroke="var(--skin)" stroke-width="10" stroke-linecap="round"/>
+        <!-- arms resting, hands near cheeks -->
+        <path d="M183 175 Q176 190 186 200" fill="none" stroke="var(--skin)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M217 175 Q224 190 214 200" fill="none" stroke="var(--skin)" stroke-width="7" stroke-linecap="round"/>
+        <!-- torso -->
+        <path d="M186 152 Q200 143 214 152 L217 182 Q200 191 183 182 Z" fill="var(--loin)"/>
+        <circle cx="193" cy="163" r="2.2" fill="var(--loin-dark)"/>
+        <circle cx="206" cy="170" r="2.2" fill="var(--loin-dark)"/>
+        <!-- head -->
+        <circle cx="200" cy="128" r="17" fill="var(--skin)"/>
+        <circle cx="184" cy="129" r="4" fill="var(--skin)"/>
+        <circle cx="216" cy="129" r="4" fill="var(--skin)"/>
+        <path d="M182 121 Q185 103 200 102 Q215 103 218 121 Q211 113 200 113 Q189 113 182 121 Z" fill="var(--hair)"/>
+        <path d="M185 126 Q183 147 200 151 Q217 147 215 126 Q215 141 200 143 Q185 141 185 126 Z" fill="var(--hair)"/>
+        <!-- flushed cheeks -->
+        <circle cx="186" cy="131" r="4.2" fill="#f29a8e" opacity=".85"/>
+        <circle cx="214" cy="131" r="4.2" fill="#f29a8e" opacity=".85"/>
+        <!-- dazed eyes -->
+        <path d="M192 124 q2.5 2 5 0" stroke="#33251a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M203 124 q2.5 2 5 0" stroke="#33251a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- spark burst at wire bite point (idle -> shock trigger) -->
+      <g id="spark-mark">
+        <path d="M205 112 l6 -4 -3 6 6 -1 -8 8 2 -7 -6 2 z" fill="#ffd23c"/>
+      </g>
+
+    </svg>
+  </div>
+
+  <h2>Look like you're lost</h2>
+  <p class="sub">the page you are looking for not avaible!</p>
+  <button class="home" onclick="window.location.href='/'">Go to Home</button>
+</div>
+
+<script>
+(function(){
+  const scene = document.getElementById('scene');
+  const title = document.getElementById('title');
+
+  const stages = [
+    { cls: 'idle',  dur: 2200 },
+    { cls: 'spark', dur: 180  },
+    { cls: 'shock', dur: 1500 },
+    { cls: 'fall',  dur: 500  },
+    { cls: 'sit',   dur: 2800 }
+  ];
+
+  let i = 0;
+  function next(){
+    const s = stages[i];
+    scene.setAttribute('class', 'scene ' + s.cls);
+    title.classList.toggle('zap', s.cls === 'shock' || s.cls === 'spark');
+    i = (i + 1) % stages.length;
+    setTimeout(next, s.dur);
+  }
+  next();
+})();
+</script>
+
+</body>
+</html>

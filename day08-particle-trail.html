@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 08/50 — Particle Cursor Trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0a0b10;
+    --bg-2:#050508;
+    --ink:#eef0f3;
+    --muted:#7c8190;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    height:100%; margin:0; overflow:hidden;
+    background: radial-gradient(circle at 50% 30%, var(--bg-1) 0%, var(--bg-2) 70%);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--muted);
+    cursor:none;
+  }
+
+  canvas{ position:fixed; inset:0; display:block; }
+
+  .eyebrow{
+    position:fixed;
+    top: clamp(16px, 3vh, 28px);
+    left:50%;
+    transform:translateX(-50%);
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:.75;
+    z-index:5;
+    pointer-events:none;
+  }
+
+  .hint{
+    position:fixed;
+    bottom: clamp(18px, 4vh, 32px);
+    left:50%;
+    transform:translateX(-50%);
+    font-size: clamp(11px, 1.8vw, 13px);
+    letter-spacing:.08em;
+    color: var(--ink);
+    opacity:.85;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition: opacity .6s ease;
+    pointer-events:none;
+  }
+
+  .hint .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:#fff;
+    box-shadow: 0 0 8px 2px #fff;
+    animation: dotPulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse{
+    0%,100%{ transform:scale(1); opacity:1; }
+    50%{ transform:scale(1.5); opacity:.5; }
+  }
+
+  .cursor-core{
+    position:fixed;
+    width:7px; height:7px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow: 0 0 10px 3px rgba(255,255,255,.8);
+    pointer-events:none;
+    z-index:6;
+    transform:translate(-50%,-50%);
+    opacity:0;
+    transition: opacity .3s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Day 08 / 50 — Particle Cursor Trail</div>
+<canvas id="stage"></canvas>
+<div class="hint" id="hint"><span class="dot"></span> Move your cursor — leave a trail of light</div>
+<div class="cursor-core" id="cursorCore"></div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const hint = document.getElementById('hint');
+  const core = document.getElementById('cursorCore');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W, H, DPR;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let particles = [];
+  let last = { x: W/2, y: H/2, t: performance.now() };
+  let lastMoveTime = 0;
+  let hintHidden = false;
+  let hueDrift = 190;
+
+  function spawnParticle(x, y, vx, vy, speedFactor, spark){
+    const life = 480 + Math.random() * 420;
+    particles.push({
+      x, y, vx, vy,
+      life, maxLife: life,
+      size: (spark ? 3.5 : 1.6) + Math.random() * (2.4 + Math.min(speedFactor, 3)),
+      hue: hueDrift + (Math.random() * 40 - 20),
+      spark: !!spark,
+      rot: Math.random() * Math.PI * 2,
+    });
+  }
+
+  function onPointerMove(x, y){
+    const now = performance.now();
+    const dt = Math.max(now - last.t, 1);
+    const dx = x - last.x, dy = y - last.y;
+    const dist = Math.hypot(dx, dy);
+    const speed = dist / dt; // px per ms
+
+    if (dist > 0){
+      hueDrift = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    }
+
+    // interpolate along the movement so fast moves don't leave gaps
+    const steps = Math.min(Math.max(Math.floor(dist / 6), 1), 14);
+    for (let i = 0; i < steps; i++){
+      const t = i / steps;
+      const px = last.x + dx * t;
+      const py = last.y + dy * t;
+      const spread = 1.4;
+      const vx = (dx / steps) * 0.12 + (Math.random() - 0.5) * spread;
+      const vy = (dy / steps) * 0.12 + (Math.random() - 0.5) * spread - 0.15;
+      spawnParticle(px, py, vx, vy, speed * 8, Math.random() < 0.12);
+    }
+
+    last = { x, y, t: now };
+    lastMoveTime = now;
+
+    core.style.left = x + 'px';
+    core.style.top = y + 'px';
+    core.style.opacity = '1';
+
+    if (!hintHidden){ hintHidden = true; hint.style.opacity = '0'; }
+  }
+
+  window.addEventListener('mousemove', (e) => onPointerMove(e.clientX, e.clientY));
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]) onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive:true });
+  window.addEventListener('mouseleave', () => { core.style.opacity = '0'; });
+
+  // ---------- idle ambient fireflies ----------
+  function maybeSpawnAmbient(now){
+    if (now - lastMoveTime < 900) return;
+    if (Math.random() < 0.06){
+      const x = Math.random() * W;
+      const y = H * (0.55 + Math.random() * 0.4);
+      spawnParticle(x, y, (Math.random()-0.5)*0.3, -0.25 - Math.random()*0.25, 1, Math.random() < 0.3);
+    }
+  }
+
+  function update(dtScale){
+    for (let i = particles.length - 1; i >= 0; i--){
+      const p = particles[i];
+      p.x += p.vx * dtScale;
+      p.y += p.vy * dtScale;
+      p.vx *= 0.965;
+      p.vy = p.vy * 0.985 - 0.006 * dtScale; // gentle upward drift + friction
+      p.life -= 16.7 * dtScale;
+      p.rot += 0.05 * dtScale;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function draw(){
+    // trailing fade instead of hard clear -> soft glowing smear
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(5,5,8,0.16)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of particles){
+      const a = Math.max(p.life / p.maxLife, 0);
+      const r = p.size * (0.6 + a * 0.7);
+
+      if (p.spark){
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = a;
+        ctx.strokeStyle = `hsl(${p.hue}, 95%, 70%)`;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = `hsl(${p.hue}, 95%, 65%)`;
+        ctx.shadowBlur = 8;
+        const s = r * 2.2;
+        ctx.beginPath();
+        ctx.moveTo(-s, 0); ctx.lineTo(s, 0);
+        ctx.moveTo(0, -s); ctx.lineTo(0, s);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3.2);
+        grad.addColorStop(0, `hsla(${p.hue}, 100%, 78%, ${a})`);
+        grad.addColorStop(0.4, `hsla(${p.hue}, 100%, 62%, ${a*0.55})`);
+        grad.addColorStop(1, `hsla(${p.hue}, 100%, 50%, 0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  let lastFrame = performance.now();
+  function frame(now){
+    const dtScale = reduceMotion ? 1 : Math.min((now - lastFrame) / 16.7, 2.2);
+    lastFrame = now;
+
+    maybeSpawnAmbient(now);
+    update(dtScale);
+    draw();
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

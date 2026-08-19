@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 10/50 — Jelly Nav Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0d0e13;
+    --bg-2:#06070a;
+    --ink:#f1f2f5;
+    --muted:#8a8d99;
+    --accent-a:#7c5cff;
+    --accent-b:#22d3ee;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(124,92,255,.14) 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+  }
+
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(30px, 6vh, 46px);
+    padding: 40px 20px;
+  }
+
+  .head{ text-align:center; max-width:480px; }
+
+  .eyebrow{
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color: var(--muted);
+    opacity:0;
+    animation: fadeUp .6s ease forwards;
+  }
+
+  h1{
+    font-size: clamp(28px, 5vw, 42px);
+    margin: 12px 0 8px;
+    font-weight:700;
+    letter-spacing:-.01em;
+    opacity:0;
+    animation: fadeUp .6s ease .08s forwards;
+    background: linear-gradient(90deg, #fff, #c6c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size: clamp(13px, 2vw, 15px);
+    margin:0;
+    opacity:0;
+    animation: fadeUp .6s ease .16s forwards;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- nav ---------- */
+  .nav-wrap{
+    opacity:0;
+    animation: fadeUp .7s ease .26s forwards;
+  }
+
+  nav{
+    position:relative;
+    display:flex;
+    padding:6px;
+    border-radius:999px;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 20px 50px -18px rgba(0,0,0,.65);
+  }
+
+  .jelly{
+    position:absolute;
+    top:6px; bottom:6px;
+    left:6px;
+    border-radius:999px;
+    background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+    box-shadow: 0 10px 26px -6px rgba(124,92,255,.65);
+    z-index:1;
+    transition: left .42s cubic-bezier(.34,1.56,.64,1), width .42s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .jelly.squish{
+    animation: squishWobble .5s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  @keyframes squishWobble{
+    0%{ transform: scaleY(1) scaleX(1); }
+    30%{ transform: scaleY(.68) scaleX(1.14); }
+    55%{ transform: scaleY(1.14) scaleX(.92); }
+    75%{ transform: scaleY(.94) scaleX(1.04); }
+    100%{ transform: scaleY(1) scaleX(1); }
+  }
+
+  .tab{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding: 11px 20px;
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size: clamp(12.5px, 2vw, 14px);
+    color: var(--muted);
+    white-space:nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .3s ease;
+  }
+
+  .tab.active{ color:#fff; }
+
+  .tab svg{
+    width:16px; height:16px;
+    stroke: currentColor;
+    fill:none;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    pointer-events:none;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .tab.pop svg{ transform: scale(1.25); }
+  .tab.pop .label{ transform: scale(1.08); }
+
+  .label{ display:inline-block; transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
+
+  .panel{
+    min-width:min(88vw, 320px);
+    text-align:center;
+    padding: 16px 22px;
+    border-radius:16px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+    border: 1px solid rgba(255,255,255,.07);
+    font-size:13px;
+    color: var(--muted);
+    opacity:0;
+    animation: fadeUp .7s ease .36s forwards;
+  }
+
+  .panel span{
+    color:#fff;
+    font-weight:600;
+    transition: opacity .25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="head">
+    <div class="eyebrow">Day 10 / 50 — Jelly Nav Menu</div>
+    <h1>Click It. Feel It Wobble.</h1>
+    <p class="sub">The indicator doesn't just slide — it stretches like taffy, then snaps into place with a jelly wobble.</p>
+  </div>
+
+  <div class="nav-wrap">
+    <nav id="nav">
+      <div class="jelly" id="jelly"></div>
+      <button class="tab active" data-label="Home">
+        <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"></path><path d="M6 10v9h12v-9"></path></svg>
+        <span class="label">Home</span>
+      </button>
+      <button class="tab" data-label="Explore">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m15 9-3.5 6.5L8 12l3.5-6.5Z"></path></svg>
+        <span class="label">Explore</span>
+      </button>
+      <button class="tab" data-label="Create">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
+        <span class="label">Create</span>
+      </button>
+      <button class="tab" data-label="Saved">
+        <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21Z"></path></svg>
+        <span class="label">Saved</span>
+      </button>
+      <button class="tab" data-label="Profile">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6"></path></svg>
+        <span class="label">Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="panel">Showing: <span id="panelLabel">Home</span></div>
+</div>
+
+<script>
+(function(){
+  const nav = document.getElementById('nav');
+  const jelly = document.getElementById('jelly');
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const panelLabel = document.getElementById('panelLabel');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let activeTab = tabs[0];
+
+  function rectFor(el){
+    const navRect = nav.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { left: r.left - navRect.left, width: r.width };
+  }
+
+  function placeJellyInstant(el){
+    const r = rectFor(el);
+    jelly.style.transition = 'none';
+    jelly.style.left = r.left + 'px';
+    jelly.style.width = r.width + 'px';
+    void jelly.offsetWidth;
+    jelly.style.transition = '';
+  }
+
+  function moveJelly(fromEl, toEl){
+    const from = rectFor(fromEl);
+    const to = rectFor(toEl);
+
+    if (reduceMotion){
+      jelly.style.left = to.left + 'px';
+      jelly.style.width = to.width + 'px';
+      return;
+    }
+
+    const stretchLeft = Math.min(from.left, to.left);
+    const stretchRight = Math.max(from.left + from.width, to.left + to.width);
+
+    // phase 1: stretch to span both old and new position (taffy pull)
+    jelly.style.transitionDuration = '.16s';
+    jelly.style.transitionTimingFunction = 'ease-out';
+    jelly.style.left = stretchLeft + 'px';
+    jelly.style.width = (stretchRight - stretchLeft) + 'px';
+
+    setTimeout(() => {
+      // phase 2: contract onto the target tab with elastic overshoot
+      jelly.style.transitionDuration = '.42s';
+      jelly.style.transitionTimingFunction = 'cubic-bezier(.34,1.56,.64,1)';
+      jelly.style.left = to.left + 'px';
+      jelly.style.width = to.width + 'px';
+
+      jelly.classList.remove('squish');
+      void jelly.offsetWidth;
+      jelly.classList.add('squish');
+    }, 160);
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab === activeTab) return;
+
+      activeTab.classList.remove('active');
+      tab.classList.add('active');
+      moveJelly(activeTab, tab);
+      activeTab = tab;
+
+      tab.classList.remove('pop');
+      void tab.offsetWidth;
+      tab.classList.add('pop');
+      setTimeout(() => tab.classList.remove('pop'), 420);
+
+      panelLabel.style.opacity = '0';
+      setTimeout(() => {
+        panelLabel.textContent = tab.dataset.label;
+        panelLabel.style.opacity = '1';
+      }, 140);
+    });
+  });
+
+  window.addEventListener('load', () => placeJellyInstant(activeTab));
+  window.addEventListener('resize', () => placeJellyInstant(activeTab));
+})();
+</script>
+
+</body>
+</html>
